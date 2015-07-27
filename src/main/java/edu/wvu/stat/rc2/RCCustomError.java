@@ -1,0 +1,45 @@
+package edu.wvu.stat.rc2;
+
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+
+import edu.wvu.stat.rc2.resources.RCRestError;
+
+public final class RCCustomError implements RCError {
+
+	private RCRestError error;
+	private String details;
+	
+	public RCCustomError(RCRestError err, String details) {
+		this.error = err;
+		this.details = details;
+	}
+	
+	public RCRestError getError() { return this.error; }
+	public String getDetails() { return this.details; }
+	
+	
+	@Override
+	public int getErrorCode() { return this.error.getErrorCode(); }
+	
+	@Override
+	public String getMessage() { return this.error.getMessage(this.getDetails()); }
+	
+	@Override
+	public void serialize(JsonGenerator jgen, SerializerProvider provider) throws IOException {
+		jgen.writeNumberField("errorCode", this.error.getErrorCode());
+		jgen.writeNumberField("httpCode", this.error.getHttpCode());
+		jgen.writeStringField("message", this.error.getMessage(this.details));
+	}
+
+	@Override
+	public void serializeWithType(JsonGenerator jgen, SerializerProvider provider, TypeSerializer serializer) throws IOException {
+		jgen.writeNumberField("errorCode", this.error.getErrorCode());
+		jgen.writeNumberField("httpCode", this.error.getHttpCode());
+		jgen.writeStringField("message", this.error.getMessage(this.details));
+	}
+
+}
