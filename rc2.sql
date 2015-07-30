@@ -458,6 +458,7 @@ CREATE TABLE rcworkspace (
     id integer DEFAULT nextval('rcworkspace_seq'::regclass) NOT NULL,
     name character varying(60) NOT NULL,
     userid integer NOT NULL,
+    version integer DEFAULT 1 NOT NULL,
     lastaccess timestamp without time zone DEFAULT now() NOT NULL,
     datecreated timestamp without time zone DEFAULT now() NOT NULL
 );
