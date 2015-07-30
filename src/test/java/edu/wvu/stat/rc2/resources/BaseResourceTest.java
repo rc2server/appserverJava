@@ -1,6 +1,7 @@
 package edu.wvu.stat.rc2.resources;
 
 import org.skife.jdbi.v2.DBI;
+import static org.mockito.Mockito.*;
 
 import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
 import edu.wvu.stat.rc2.persistence.RCUser;
@@ -12,7 +13,14 @@ public abstract class BaseResourceTest {
 	
 	public BaseResourceTest() {
 		_dbi = new DBI(dbfactory.getDataSource());
-		RCUser.UserQueries dao = _dbi.onDemand(RCUser.UserQueries.class);
-		_user = dao.findById(1);
+		
+		_user = mock(RCUser.class);
+		when(_user.getEmail()).thenReturn("cornholio@stat.wvu.edu");
+		when(_user.getFirstName()).thenReturn("Great");
+		when(_user.getLastName()).thenReturn("Cornholio");
+		when(_user.getLogin()).thenReturn("cornholio");
+		when(_user.getId()).thenReturn(1);
+		when(_user.isAdmin()).thenReturn(false);
+		when(_user.isEnabled()).thenReturn(true);
 	}
 }

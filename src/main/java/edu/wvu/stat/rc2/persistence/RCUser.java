@@ -40,7 +40,7 @@ public class RCUser implements PersistentObject {
 		}
 	}
 	
-	public interface UserQueries {
+	public interface Queries {
 		@SqlQuery("select * from rcuser where id = :id")
 		@Mapper(RCUserMapper.class)
 		RCUser findById(@Bind("id") int id);

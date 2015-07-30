@@ -8,6 +8,11 @@ import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
 import edu.wvu.stat.rc2.resources.RCRestError;
 
+/**
+	Custom implementation of RCError that allows a detail string in the localized message to be inserted.
+	
+	@author mlilback
+*/
 public final class RCCustomError implements RCError {
 
 	private RCRestError error;
