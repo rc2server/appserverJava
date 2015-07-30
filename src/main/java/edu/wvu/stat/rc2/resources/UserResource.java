@@ -9,21 +9,26 @@ import javax.ws.rs.core.MediaType;
 
 import org.skife.jdbi.v2.DBI;
 
-import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
 import edu.wvu.stat.rc2.persistence.RCUser;
+import edu.wvu.stat.rc2.rs.Rc2DBInject;
 
-@Path("/users/{userid}")
+@Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 public class UserResource extends BaseResource {
 
-	public UserResource(PGDataSourceFactory factory) {
-		super(factory);
+	@Rc2DBInject DBI _dbi;
+	
+	public UserResource() {}
+	
+	/** constructor for unit tests to bypass injection */
+	public UserResource(DBI dbi) {
+		_dbi = dbi;
 	}
 	
+	@Path("users/{userid}")
 	@GET
 	public RCUser getUser(@PathParam("userid") String userid) {
-		DBI dbi = new DBI(_dsFactory.getDataSource());
-		RCUser.UserQueries dao = dbi.onDemand(RCUser.UserQueries.class);
+		RCUser.UserQueries dao = _dbi.onDemand(RCUser.UserQueries.class);
 		RCUser user = dao.findById(Integer.parseInt(userid));
 		if (null == user) {
 			throw new WebApplicationException(404);

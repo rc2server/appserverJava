@@ -5,14 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
+import edu.wvu.stat.rc2.persistence.RCUser;
+import edu.wvu.stat.rc2.rs.UserInject;
 
 public abstract class BaseResource {
-	protected final PGDataSourceFactory _dsFactory;
 	
-	public BaseResource(PGDataSourceFactory factory) {
-		_dsFactory = factory;
-	}
+	@UserInject
+	RCUser _user;
 	
 	public Map<String,Object> formatErrorResponse(RCRestError error) {
 		return formatErrorResponse(Arrays.asList(error));

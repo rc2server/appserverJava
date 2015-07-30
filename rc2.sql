@@ -437,10 +437,10 @@ CREATE TABLE sessionrecord (
 ALTER TABLE sessionrecord OWNER TO rc2;
 
 --
--- Name: workspace_seq; Type: SEQUENCE; Schema: public; Owner: rc2
+-- Name: rcworkspace_seq; Type: SEQUENCE; Schema: public; Owner: rc2
 --
 
-CREATE SEQUENCE workspace_seq
+CREATE SEQUENCE rcworkspace_seq
     START WITH 100
     INCREMENT BY 1
     NO MINVALUE
@@ -448,14 +448,14 @@ CREATE SEQUENCE workspace_seq
     CACHE 1;
 
 
-ALTER TABLE workspace_seq OWNER TO rc2;
+ALTER TABLE rcworkspace_seq OWNER TO rc2;
 
 --
--- Name: workspace; Type: TABLE; Schema: public; Owner: rc2; Tablespace: 
+-- Name: rcworkspace; Type: TABLE; Schema: public; Owner: rc2; Tablespace: 
 --
 
-CREATE TABLE workspace (
-    id integer DEFAULT nextval('workspace_seq'::regclass) NOT NULL,
+CREATE TABLE rcworkspace (
+    id integer DEFAULT nextval('rcworkspace_seq'::regclass) NOT NULL,
     name character varying(60) NOT NULL,
     userid integer NOT NULL,
     lastaccess timestamp without time zone DEFAULT now() NOT NULL,
@@ -463,19 +463,19 @@ CREATE TABLE workspace (
 );
 
 
-ALTER TABLE workspace OWNER TO rc2;
+ALTER TABLE rcworkspace OWNER TO rc2;
 
 --
--- Name: workspacedata; Type: TABLE; Schema: public; Owner: rc2; Tablespace: 
+-- Name: rcworkspacedata; Type: TABLE; Schema: public; Owner: rc2; Tablespace: 
 --
 
-CREATE TABLE workspacedata (
+CREATE TABLE rcworkspacedata (
     id integer NOT NULL,
     bindata bytea
 );
 
 
-ALTER TABLE workspacedata OWNER TO rc2;
+ALTER TABLE rcworkspacedata OWNER TO rc2;
 
 --
 -- Name: crashdata_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
@@ -598,19 +598,19 @@ ALTER TABLE ONLY sessionrecord
 
 
 --
--- Name: workspace_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
+-- Name: rcworkspace_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
 --
 
-ALTER TABLE ONLY workspace
-    ADD CONSTRAINT workspace_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY rcworkspace
+    ADD CONSTRAINT rcworkspace_pkey PRIMARY KEY (id);
 
 
 --
--- Name: workspacedata_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
+-- Name: rcworkspacedata_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
 --
 
-ALTER TABLE ONLY workspacedata
-    ADD CONSTRAINT workspacedata_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY rcworkspacedata
+    ADD CONSTRAINT rcworkspacedata_pkey PRIMARY KEY (id);
 
 
 --
@@ -691,7 +691,7 @@ ALTER TABLE ONLY logentry
 --
 
 ALTER TABLE ONLY rcfile
-    ADD CONSTRAINT rcfile_wspaceid_fkey FOREIGN KEY (wspaceid) REFERENCES workspace(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
+    ADD CONSTRAINT rcfile_wspaceid_fkey FOREIGN KEY (wspaceid) REFERENCES rcworkspace(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
 
 
 --
@@ -723,23 +723,23 @@ ALTER TABLE ONLY sessionimage
 --
 
 ALTER TABLE ONLY sessionrecord
-    ADD CONSTRAINT sessionrecord_wspace_fk FOREIGN KEY (wspaceid) REFERENCES workspace(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
+    ADD CONSTRAINT sessionrecord_wspace_fk FOREIGN KEY (wspaceid) REFERENCES rcworkspace(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
 
 
 --
--- Name: workspace_ownerid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: rc2
+-- Name: rcworkspace_ownerid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: rc2
 --
 
-ALTER TABLE ONLY workspace
-    ADD CONSTRAINT workspace_userid_fkey FOREIGN KEY (userid) REFERENCES rcuser(id) DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE ONLY rcworkspace
+    ADD CONSTRAINT rcworkspace_userid_fkey FOREIGN KEY (userid) REFERENCES rcuser(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
--- Name: workspacedata_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: rc2
+-- Name: rcworkspacedata_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: rc2
 --
 
-ALTER TABLE ONLY workspacedata
-    ADD CONSTRAINT workspacedata_id_fkey FOREIGN KEY (id) REFERENCES workspace(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE ONLY rcworkspacedata
+    ADD CONSTRAINT rcworkspacedata_id_fkey FOREIGN KEY (id) REFERENCES rcworkspace(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
 
 
 
@@ -747,5 +747,7 @@ ALTER TABLE ONLY workspacedata
 -- PostgreSQL database dump complete
 --
 
-insert into rcuser (id,login,email,firstname,lastname,admin,passworddata) values (1,'mlilback','mark@lilback.com','Mark','Lilback', true, '$2a$10$dyOnrkOTlNEjQsidwwvVeeCyKTIUNRWgoqLVSZFwlP0cn5tUdizaG');
+insert into rcuser (id,login,email,firstname,lastname,admin,passworddata) values (1,'test','cornholio@stat.wvu.edu','Great','Cornholio', false, '$2a$10$dyOnrkOTlNEjQsidwwvVeeCyKTIUNRWgoqLVSZFwlP0cn5tUdizaG');
+insert into rcworkspace (id, userid, name) values (1, 1, 'foofy');
+insert into rcworkspace (id, userid, name) values (2, 1, 'thrice');
 
