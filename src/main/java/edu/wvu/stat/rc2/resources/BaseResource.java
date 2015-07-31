@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
 import org.skife.jdbi.v2.DBI;
 
 import edu.wvu.stat.rc2.RCError;
@@ -25,6 +28,14 @@ public abstract class BaseResource {
 	BaseResource(DBI dbi, RCUser user) {
 		_dbi = dbi;
 		_user = user;
+	}
+	
+	public void throwRestError(RCRestError error) throws WebApplicationException {
+		Response rsp = Response.status(error.getHttpCode())
+							.entity(Arrays.asList(error))
+							.build();
+		throw new WebApplicationException(rsp);
+		
 	}
 	
 	public List<RCError> formatErrorResponse(RCRestError error) {

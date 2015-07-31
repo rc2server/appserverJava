@@ -7,6 +7,7 @@ import java.util.List;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
+import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
@@ -37,9 +38,19 @@ public class RCWorkspace implements PersistentObject {
 		@SqlQuery("select * from RCWorkspace where id = :id")
 		@Mapper(RCWorkspaceMapper.class)
 		RCWorkspace findById(@Bind("id") int id);
-		
+
+		@SqlQuery("select * from RCWorkspace where name ilike :name")
+		@Mapper(RCWorkspaceMapper.class)
+		RCWorkspace findByName(@Bind("name") String name);
+
 		@SqlQuery("select * from RCWorkspace where userid = :userid")
 		@Mapper(RCWorkspaceMapper.class)
 		List<RCWorkspace> ownedByUser(@Bind("userid") int userid);
+		
+		@SqlQuery("insert into rcworkspace (name, userid) values (:name, :userid) returning id")
+		int createWorkspace(@Bind("name") String name, @Bind("userid") int userid);
+		
+		@SqlUpdate("delete from rcworkspace where id = :id")
+		int deleteWorkspace(@Bind("id") int id);
 	}
 }

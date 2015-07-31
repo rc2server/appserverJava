@@ -2,16 +2,23 @@ package edu.wvu.stat.rc2.resources;
 
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.core.status.Status;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 
@@ -39,5 +46,23 @@ public class WorkspaceResource extends BaseResource {
 			throw new WebApplicationException(404);
 		}
 		return wspaces;
+	}
+	
+	@POST
+	public RCWorkspace createWorkspace(@NotNull @FormParam("name") String name) {
+		RCWorkspace.Queries dao = _dbi.onDemand(RCWorkspace.Queries.class);
+		RCWorkspace ws = dao.findByName(name);
+		if (ws != null)
+			throwRestError(RCRestError.DuplicateName);
+		int wsid = dao.createWorkspace(name, _user.getId());
+		return dao.findById(wsid);
+	}
+	
+	@DELETE
+	@Path("{id}")
+	public Response deleteWorkspace(@PathParam("id") int id) {
+		RCWorkspace.Queries dao = _dbi.onDemand(RCWorkspace.Queries.class);
+		dao.deleteWorkspace(id);
+		return Response.status(Response.Status.NO_CONTENT).build();
 	}
 }
