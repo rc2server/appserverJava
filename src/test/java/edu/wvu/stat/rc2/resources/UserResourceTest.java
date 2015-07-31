@@ -2,9 +2,11 @@ package edu.wvu.stat.rc2.resources;
 
 import static org.junit.Assert.*;
 
+import org.json.JSONException;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import edu.wvu.stat.rc2.persistence.RCUser;
 import io.dropwizard.testing.junit.ResourceTestRule;
@@ -26,6 +28,13 @@ public class UserResourceTest extends BaseResourceTest {
 		assertEquals("test", user.getLogin());
 		assertFalse(user.isAdmin());
 		assertTrue(user.isEnabled());
+	}
+	
+	@Test
+	public void testGetUserJson() throws JSONException {
+		String responseJson = resources.client().target("/users/1").request().get(String.class);
+		JSONAssert.assertEquals("{id:1,login:\"test\",firstName:\"Great\",lastName:\"Cornholio\"," +
+				"email:\"cornholio@stat.wvu.edu\"}", responseJson, false);
 	}
 
 }

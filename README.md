@@ -27,6 +27,10 @@
 
 * Resources should uses appropriate status codes for error and return a list of RCError objects. 
 
+## Eclipse issues
+
+* After importing the maven project, be sure to remove eclipse's junit library from Properties->Java Build Path->Libraries. It will include versions of hamcrest that don't match with that used by the maven build.
+
 ## Style conventions
 
 * Tabs, not spaces.

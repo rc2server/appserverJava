@@ -31,13 +31,13 @@ public class WorkspaceResource extends BaseResource {
 	}
 
 	@GET
-	public APIResponse workspaces() {
+	public List<RCWorkspace> workspaces() {
 		RCWorkspace.Queries dao = _dbi.onDemand(RCWorkspace.Queries.class);
 		List<RCWorkspace> wspaces = dao.ownedByUser(_user.getId());
 		if (null == wspaces) {
 			log.warn(String.format("no workspaces found for user %s", _user.getLogin()));
 			throw new WebApplicationException(404);
 		}
-		return new APIResponse(0, "workspaces", wspaces);
+		return wspaces;
 	}
 }
