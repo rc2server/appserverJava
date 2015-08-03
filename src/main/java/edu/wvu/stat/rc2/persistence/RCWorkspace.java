@@ -11,25 +11,39 @@ import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-public class RCWorkspace implements PersistentObject {
-	private int id, version, userId;
-	private String name;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public final class RCWorkspace implements PersistentObject {
+	private final int _id, _version, _userId;
+	private final String _name;
 	
-	public int getId() { return this.id; }
-	public int getVersion() { return this.version; }
+	@JsonCreator
+	public RCWorkspace(@JsonProperty("id") int id, @JsonProperty("version") int version, 
+			@JsonProperty("userId") int userId, @JsonProperty("name") String name) 
+	{
+		_id = id;
+		_version = version;
+		_userId = userId;
+		_name = name;
+	}
 	
-	public int getUserId() { return this.userId; }
+	@JsonProperty("id")
+	public int getId() { return _id; }
 	
-	public String getName() { return this.name; }
+	@JsonProperty("version")
+	public int getVersion() { return _version; }
+	
+	@JsonProperty("userId")
+	public int getUserId() { return _userId; }
+	
+	@JsonProperty("name")
+	public String getName() { return _name; }
 	
 	public static class RCWorkspaceMapper implements ResultSetMapper<RCWorkspace> {
 		public RCWorkspaceMapper() {}
 		public RCWorkspace map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
-			RCWorkspace obj = new RCWorkspace();
-			obj.id = rs.getInt("id");
-			obj.version = rs.getInt("version");
-			obj.userId = rs.getInt("userid");
-			obj.name = rs.getString("name");
+			RCWorkspace obj = new RCWorkspace(rs.getInt("id"), rs.getInt("version"), rs.getInt("userid"), rs.getString("name"));
 			return obj;
 		}
 	}

@@ -59,7 +59,7 @@ public class WorkspaceResource extends BaseResource {
 		RCWorkspace.Queries dao = _dbi.onDemand(RCWorkspace.Queries.class);
 		RCWorkspace ws = dao.findByName(input.getName());
 		if (ws != null)
-			throwRestError(RCRestError.DuplicateName);
+			throwCustomRestError(RCRestError.DuplicateName, "workspace");
 		int wsid = dao.createWorkspace(input.getName(), _user.getId());
 		return dao.findById(wsid);
 	}

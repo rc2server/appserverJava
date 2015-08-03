@@ -13,8 +13,11 @@ public interface RCError extends JsonSerializable {
 
 	@Override
 	default void serialize(JsonGenerator jgen, SerializerProvider provider) throws IOException {
+		jgen.writeStartObject();
 		jgen.writeNumberField("errorCode", this.getErrorCode());
-		jgen.writeStringField("message", this.getMessage());
+		String msg = this.getMessage();
+		jgen.writeStringField("message", msg);
+		jgen.writeEndObject();
 	}
 
 	@Override

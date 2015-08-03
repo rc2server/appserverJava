@@ -3,7 +3,9 @@ package edu.wvu.stat.rc2.resources;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.wvu.stat.rc2.RCError;
 
@@ -14,7 +16,8 @@ public enum RCRestError implements RCError  {
 	private int errorCode, httpCode;
 	private String msgKey;
 	
-	RCRestError(int errorCode, int httpCode, String msgKey) {
+	@JsonCreator
+	RCRestError(@JsonProperty("errorCode") int errorCode, @JsonProperty("httpCode") int httpCode, String msgKey) {
 		this.errorCode = errorCode;
 		this.httpCode = httpCode;
 		this.msgKey = msgKey;
@@ -37,4 +40,5 @@ public enum RCRestError implements RCError  {
 		return MessageFormat.format(rBundle.getString(this.msgKey), arg1);
 	}
 	
+
 }

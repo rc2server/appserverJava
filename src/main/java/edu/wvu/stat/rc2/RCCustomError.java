@@ -13,7 +13,7 @@ import edu.wvu.stat.rc2.resources.RCRestError;
 	
 	@author mlilback
 */
-public final class RCCustomError implements RCError {
+public class RCCustomError implements RCError {
 
 	private RCRestError error;
 	private String details;
@@ -35,15 +35,16 @@ public final class RCCustomError implements RCError {
 	
 	@Override
 	public void serialize(JsonGenerator jgen, SerializerProvider provider) throws IOException {
+		jgen.writeStartObject();
 		jgen.writeNumberField("errorCode", this.error.getErrorCode());
-		jgen.writeNumberField("httpCode", this.error.getHttpCode());
-		jgen.writeStringField("message", this.error.getMessage(this.details));
+		String msg = this.error.getMessage(this.details);
+		jgen.writeStringField("message", msg);
+		jgen.writeEndObject();
 	}
 
 	@Override
 	public void serializeWithType(JsonGenerator jgen, SerializerProvider provider, TypeSerializer serializer) throws IOException {
 		jgen.writeNumberField("errorCode", this.error.getErrorCode());
-		jgen.writeNumberField("httpCode", this.error.getHttpCode());
 		jgen.writeStringField("message", this.error.getMessage(this.details));
 	}
 

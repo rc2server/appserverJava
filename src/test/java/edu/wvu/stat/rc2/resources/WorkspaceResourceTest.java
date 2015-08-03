@@ -52,7 +52,7 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 		WebTarget target = resources.client().target("/workspaces");
 		WorkspaceResource.WorkspacePostInput input = new WorkspaceResource.WorkspacePostInput("testws");
 		RCWorkspace ws = target
-							.request(MediaType.APPLICATION_JSON_TYPE)
+							.request()
 							.post(Entity.entity(input, MediaType.APPLICATION_JSON), RCWorkspace.class);
 		assertNotNull(ws);
 		assertThat(ws.getName(), is("testws"));

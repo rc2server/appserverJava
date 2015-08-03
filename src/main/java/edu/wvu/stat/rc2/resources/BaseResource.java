@@ -10,6 +10,7 @@ import javax.ws.rs.core.Response;
 
 import org.skife.jdbi.v2.DBI;
 
+import edu.wvu.stat.rc2.RCCustomError;
 import edu.wvu.stat.rc2.RCError;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.rs.Rc2DBInject;
@@ -37,7 +38,16 @@ public abstract class BaseResource {
 		throw new WebApplicationException(rsp);
 		
 	}
-	
+
+	public void throwCustomRestError(RCRestError error, String details) throws WebApplicationException {
+		RCCustomError cerr = new RCCustomError(error, details);
+		Response rsp = Response.status(error.getHttpCode())
+							.entity(Arrays.asList(cerr))
+							.build();
+		throw new WebApplicationException(rsp);
+		
+	}
+
 	public List<RCError> formatErrorResponse(RCRestError error) {
 		return Arrays.asList(error);
 	}
