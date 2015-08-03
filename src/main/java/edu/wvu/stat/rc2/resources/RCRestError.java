@@ -13,31 +13,31 @@ public enum RCRestError implements RCError  {
 	DuplicateName(100, 422, "DuplicateName");
 	
 	private static final ResourceBundle rBundle = ResourceBundle.getBundle("RCRestError");
-	private int errorCode, httpCode;
-	private String msgKey;
+	private int _errorCode, _httpCode;
+	private String _msgKey;
 	
 	@JsonCreator
 	RCRestError(@JsonProperty("errorCode") int errorCode, @JsonProperty("httpCode") int httpCode, String msgKey) {
-		this.errorCode = errorCode;
-		this.httpCode = httpCode;
-		this.msgKey = msgKey;
+		_errorCode = errorCode;
+		_httpCode = httpCode;
+		_msgKey = msgKey;
 	}
 	
 	@Override
-	public int getErrorCode() { return this.errorCode; }
+	public int getErrorCode() { return _errorCode; }
 	
-	public int getHttpCode() { return this.httpCode; }
+	public int getHttpCode() { return _httpCode; }
 
 	@JsonIgnore
-	public String getMessageKey() { return this.msgKey; }
+	public String getMessageKey() { return _msgKey; }
 	
 	@Override
 	public String getMessage() {
-		return rBundle.getString(this.msgKey);
+		return rBundle.getString(_msgKey);
 	}
 
 	public String getMessage(String arg1) {
-		return MessageFormat.format(rBundle.getString(this.msgKey), arg1);
+		return MessageFormat.format(rBundle.getString(_msgKey), arg1);
 	}
 	
 
