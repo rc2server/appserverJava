@@ -5,9 +5,9 @@ import static org.hamcrest.Matchers.*;
 
 import java.util.List;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -48,18 +48,37 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 	}
 
 	@Test
-	public void testCreateWorkspace() {
+	public void testCreateEditDeleteWorkspace() {
 		WebTarget target = resources.client().target("/workspaces");
-		Form form = new Form();
-		form.param("name", "testws");
+		WorkspaceResource.WorkspacePostInput input = new WorkspaceResource.WorkspacePostInput("testws");
 		RCWorkspace ws = target
 							.request(MediaType.APPLICATION_JSON_TYPE)
-							.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE), RCWorkspace.class);
+							.post(Entity.entity(input, MediaType.APPLICATION_JSON), RCWorkspace.class);
 		assertNotNull(ws);
 		assertThat(ws.getName(), is("testws"));
 		assertThat(ws.getId(), greaterThan(0));
-		//delete workspace we just created
-		Response rsp = resources.client().target("/workspaces/" + ws.getId()).request().delete();
-		assertThat(rsp.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+		try {
+			//try an update
+			WorkspaceResource.WorkspacePutInput update = new WorkspaceResource.WorkspacePutInput(ws.getId(), "doofus123");
+			RCWorkspace modWs = target
+									.request(MediaType.APPLICATION_JSON)
+									.put(Entity.entity(update, MediaType.APPLICATION_JSON), RCWorkspace.class);
+			assertThat(modWs.getId(), is(ws.getId()));
+			assertThat(modWs.getName(), is(update.getName()));
+		} finally {
+			//delete workspace we just created
+			Response rsp = resources.client().target("/workspaces/" + ws.getId()).request().delete();
+			assertThat(rsp.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+		}
+	}
+	
+	@Test(expected=WebApplicationException.class)
+	public void testUpdateNonexistentWorkspace() {
+		WebTarget target = resources.client().target("/workspaces");
+		//need to use valid id, else get processing exception
+		WorkspaceResource.WorkspacePutInput update = new WorkspaceResource.WorkspacePutInput(200000, "doofus123");
+		target
+			.request(MediaType.APPLICATION_JSON)
+			.put(Entity.entity(update, MediaType.APPLICATION_JSON), RCWorkspace.class);
 	}
 }

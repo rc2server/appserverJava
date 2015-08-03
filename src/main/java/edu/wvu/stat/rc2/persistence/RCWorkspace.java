@@ -50,6 +50,9 @@ public class RCWorkspace implements PersistentObject {
 		@SqlQuery("insert into rcworkspace (name, userid) values (:name, :userid) returning id")
 		int createWorkspace(@Bind("name") String name, @Bind("userid") int userid);
 		
+		@SqlUpdate("update rcworkspace set name = :name where id = :id")
+		int updateWorkspace(@Bind("id") int id, @Bind("name") String name);
+		
 		@SqlUpdate("delete from rcworkspace where id = :id")
 		int deleteWorkspace(@Bind("id") int id);
 	}
