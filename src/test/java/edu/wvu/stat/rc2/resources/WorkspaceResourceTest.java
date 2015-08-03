@@ -14,11 +14,13 @@ import javax.ws.rs.core.Response;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import edu.wvu.stat.rc2.RCCustomError;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import io.dropwizard.testing.junit.ResourceTestRule;
 
@@ -47,6 +49,20 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 		JSONAssert.assertEquals("{id:2,name:\"thrice\"}]", wspaces.getJSONObject(1), false);
 	}
 
+	@Test
+	public void testProperErrorSerialization() throws JSONException {
+		RCCustomError expected = new RCCustomError(RCRestError.DuplicateName, "workspace");
+		WebTarget target = resources.client().target("/workspaces");
+		WorkspaceResource.WorkspacePostInput input = new WorkspaceResource.WorkspacePostInput("foofy");
+		Response rsp = target
+			.request()
+			.post(Entity.entity(input, MediaType.APPLICATION_JSON));
+		assertThat(rsp.getStatus(), is(422));
+		String json = rsp.readEntity(String.class);
+		JSONObject err = new JSONArray(json).getJSONObject(0);
+		assertThat(err.get("message"), is(expected.getMessage()));
+	}
+	
 	@Test
 	public void testCreateEditDeleteWorkspace() {
 		WebTarget target = resources.client().target("/workspaces");
