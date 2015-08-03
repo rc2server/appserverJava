@@ -10,7 +10,9 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -38,9 +40,11 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 
 	@Test
 	public void testWorkspaceListJson() throws JSONException {
-		//FIXME: the following fails if there aren't exactly two workspaces. need to figure better way to test
-//		String x = resources.client().target("/workspaces").request().get(String.class);
-//		JSONAssert.assertEquals("[{id:1,name:\"foofy\"},{id:2,name:\"thrice\"}]", x, false);
+		//have to parse a bit as jsonassert can only exactly match arrays and there might be more than 2 workspaces
+		String x = resources.client().target("/workspaces").request().get(String.class);
+		JSONArray wspaces = new JSONArray(x);
+		JSONAssert.assertEquals("{id:1,name:\"foofy\"}", wspaces.getJSONObject(0), false);
+		JSONAssert.assertEquals("{id:2,name:\"thrice\"}]", wspaces.getJSONObject(1), false);
 	}
 
 	@Test
@@ -55,6 +59,7 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 		assertThat(ws.getName(), is("testws"));
 		assertThat(ws.getId(), greaterThan(0));
 		//delete workspace we just created
-		resources.client().target("/workspaces/" + ws.getId()).request().delete();
+		Response rsp = resources.client().target("/workspaces/" + ws.getId()).request().delete();
+		assertThat(rsp.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
 	}
 }
