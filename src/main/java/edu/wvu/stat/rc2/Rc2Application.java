@@ -68,7 +68,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 
 		@Override
 		public DBI provide() {
-			return new DBI(dbfactory.getDataSource());
+			return dbfactory.createDBI();
 		}
 		
 	}

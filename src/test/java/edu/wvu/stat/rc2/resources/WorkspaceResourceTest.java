@@ -17,7 +17,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.skife.jdbi.v2.DBI;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import edu.wvu.stat.rc2.RCCustomError;
@@ -28,7 +27,7 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 
 	@ClassRule
 	public static final ResourceTestRule resources = ResourceTestRule.builder()
-		.addResource(new WorkspaceResource(new DBI(dbfactory.getDataSource()), user))
+		.addResource(new WorkspaceResource(dbfactory.createDBI(), user))
 		.build();
 
 	@SuppressWarnings("unchecked")

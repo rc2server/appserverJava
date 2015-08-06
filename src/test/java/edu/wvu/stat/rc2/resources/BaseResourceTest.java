@@ -22,7 +22,7 @@ public abstract class BaseResourceTest {
 	}
 	
 	public BaseResourceTest() {
-		_dbi = new DBI(dbfactory.getDataSource());
+		_dbi = dbfactory.createDBI();
 		
 	}
 }

@@ -2,7 +2,11 @@ package edu.wvu.stat.rc2.persistence;
 
 import javax.sql.DataSource;
 
+import org.skife.jdbi.v2.DBI;
+
 import com.impossibl.postgres.jdbc.PGDataSource;
+
+import edu.wvu.stat.rc2.jdbi.BigIntegerArgumentFactory;
 
 public class PGDataSourceFactory {
 	private DataSource _ds;
@@ -19,6 +23,10 @@ public class PGDataSourceFactory {
 		pgds.setApplicationName("rc2 REST server");
 	}
 	
-	public DataSource getDataSource() { return _ds; }
+	public DBI createDBI() {
+		DBI dbi = new DBI(_ds);
+		dbi.registerArgumentFactory(new BigIntegerArgumentFactory());
+		return dbi;
+	}
 	
 }

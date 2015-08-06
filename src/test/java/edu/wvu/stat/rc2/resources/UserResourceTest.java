@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import org.json.JSONException;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.skife.jdbi.v2.DBI;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import edu.wvu.stat.rc2.persistence.RCUser;
@@ -15,7 +14,7 @@ public class UserResourceTest extends BaseResourceTest {
 	
 	@ClassRule
 	public static final ResourceTestRule resources = ResourceTestRule.builder()
-		.addResource(new UserResource(new DBI(dbfactory.getDataSource()), user))
+		.addResource(new UserResource(dbfactory.createDBI(), user))
 		.build();
 	
 	@Test

@@ -24,7 +24,9 @@ public class LoggedInUserFactory implements Factory<RCUser> {
 	@Override
 	public RCUser provide() {
 		final Principal principal = _request.getUserPrincipal();
-		return (RCUser)principal;
+		if (principal instanceof RCUserPrincipal)
+			return ((RCUserPrincipal)principal).getUser();
+		return null;
 	}
 
 }

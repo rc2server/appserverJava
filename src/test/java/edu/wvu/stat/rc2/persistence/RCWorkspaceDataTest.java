@@ -13,7 +13,7 @@ public class RCWorkspaceDataTest {
 	DBI _dbi;
 
 	public RCWorkspaceDataTest() {
-		_dbi = new DBI(dbfactory.getDataSource());
+		_dbi = dbfactory.createDBI();
 		_random = new Random();
 	}
 	
