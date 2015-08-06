@@ -23,7 +23,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 public class Rc2Application extends Application<Rc2AppConfiguration> {
-	private final PGDataSourceFactory dbfactory = new PGDataSourceFactory();
+	private static final PGDataSourceFactory dbfactory = new PGDataSourceFactory();
 	
 	
 	public static void main(String[] args) throws Exception {
@@ -61,7 +61,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 
 	}
 
-	class DBIFactory implements Factory<DBI> {
+	static class DBIFactory implements Factory<DBI> {
 		@Override
 		public void dispose(DBI arg0) {
 		}
