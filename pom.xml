@@ -6,6 +6,13 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+  	<repositories>
+		<repository>
+			 <id>jitpack.io</id>
+			 <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+    
     <dependencies>
  		<dependency>
 			<groupId>org.hamcrest</groupId>
@@ -18,6 +25,11 @@
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.jeremyh</groupId>
+			<artifactId>jBcrypt</artifactId>
+			<version>jbcrypt-0.4</version>
 		</dependency>
         <dependency>
             <groupId>io.dropwizard</groupId>
@@ -57,4 +69,22 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 		<dwversion>0.8.2</dwversion>
     </properties>
+    <build>
+    	<plugins>
+    		<plugin>
+    			<groupId>org.apache.maven.plugins</groupId>
+    			<artifactId>maven-jar-plugin</artifactId>
+    			<version>2.4</version>
+    			<configuration>
+    				<archive>
+   						<index>true</index>
+    					<manifest>
+    						<mainClass>edu.wvu.stat.rc2.Rc2Application</mainClass>
+    					</manifest>
+    				</archive>
+    			</configuration>
+    		</plugin>
+    	</plugins>
+    </build>
 </project>
+

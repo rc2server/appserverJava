@@ -27,6 +27,10 @@
 
 * Resources should uses appropriate status codes for error and return a list of RCError objects. 
 
+## Web Client
+
+* Uses [aurelia](http://aurelia.io/) and [Bootstrap](http://getbootstrap.com/)
+
 ## Eclipse issues
 
 * After importing the maven project, be sure to remove eclipse's junit library from Properties->Java Build Path->Libraries. It will include versions of hamcrest that don't match with that used by the maven build.
@@ -41,3 +45,6 @@
 
 * all model classes start with a RC prefix (even though they are in a package) so generic class names like User and File won't conflict with library classes.
 
+## TODO
+
+* implement login security measures: stop brute force attacks, limit failed logins by account and/or ip address

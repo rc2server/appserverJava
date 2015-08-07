@@ -9,9 +9,11 @@ import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class RCUser implements PersistentObject {
 	private int id, version;
-	private String login, firstName, lastName, email;
+	private String login, firstName, lastName, email, hashedPassword;
 	private boolean admin, enabled;
 	
 	public int getId() { return this.id; }
@@ -23,7 +25,11 @@ public class RCUser implements PersistentObject {
 	public String getEmail() { return this.email; }
 	public boolean isAdmin() { return this.admin; }
 	public boolean isEnabled() { return this.enabled; }
+	
+	@JsonIgnore
+	public String getHashedPassword() { return this.hashedPassword; }
 
+	
 	public static class RCUserMapper implements ResultSetMapper<RCUser> {
 		public RCUserMapper() {}
 		public RCUser map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
@@ -36,6 +42,7 @@ public class RCUser implements PersistentObject {
 			user.email = rs.getString("email");
 			user.admin = rs.getBoolean("admin");
 			user.enabled = rs.getBoolean("enabled");
+			user.hashedPassword = rs.getString("passworddata");
 			return user;
 		}
 	}
@@ -44,5 +51,9 @@ public class RCUser implements PersistentObject {
 		@SqlQuery("select * from rcuser where id = :id")
 		@Mapper(RCUserMapper.class)
 		RCUser findById(@Bind("id") int id);
+		
+		@SqlQuery("select * from rcuser where login = :login")
+		@Mapper(RCUserMapper.class)
+		RCUser findByLogin(@Bind("login") String login);
 	}
 }

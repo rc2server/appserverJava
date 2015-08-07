@@ -44,10 +44,11 @@ public class WorkspaceResource extends BaseResource {
 
 	@GET
 	public List<RCWorkspace> workspaces() {
+		RCUser user = getUser();
 		RCWorkspace.Queries dao = _dbi.onDemand(RCWorkspace.Queries.class);
-		List<RCWorkspace> wspaces = dao.ownedByUser(_user.getId());
+		List<RCWorkspace> wspaces = dao.ownedByUser(user.getId());
 		if (null == wspaces) {
-			log.warn(String.format("no workspaces found for user %s", _user.getLogin()));
+			log.warn(String.format("no workspaces found for user %s", user.getLogin()));
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 		}
 		return wspaces;
@@ -60,7 +61,8 @@ public class WorkspaceResource extends BaseResource {
 		RCWorkspace ws = dao.findByName(input.getName());
 		if (ws != null)
 			throwCustomRestError(RCRestError.DuplicateName, "workspace");
-		int wsid = dao.createWorkspace(input.getName(), _user.getId());
+		RCUser user = getUser();
+		int wsid = dao.createWorkspace(input.getName(), user.getId());
 		return dao.findById(wsid);
 	}
 	

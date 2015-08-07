@@ -10,14 +10,12 @@ import org.glassfish.jersey.process.internal.RequestScoped;
 import org.skife.jdbi.v2.DBI;
 
 import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
-import edu.wvu.stat.rc2.persistence.RCUser;
+import edu.wvu.stat.rc2.resources.LoginResource;
 import edu.wvu.stat.rc2.resources.UserResource;
 import edu.wvu.stat.rc2.resources.WorkspaceResource;
-import edu.wvu.stat.rc2.rs.LoggedInUserFactory;
 import edu.wvu.stat.rc2.rs.Rc2DBInject;
 import edu.wvu.stat.rc2.rs.Rc2DBInjectResolver;
-import edu.wvu.stat.rc2.rs.UserInject;
-import edu.wvu.stat.rc2.rs.UserInjectResolver;
+import edu.wvu.stat.rc2.server.HashPasswordCommand;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -37,21 +35,18 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	
 	@Override
 	public void initialize(Bootstrap<Rc2AppConfiguration> bootstrap) {
-		
+		bootstrap.addCommand(new HashPasswordCommand());
 	}
 	
 	@Override
 	public void run(Rc2AppConfiguration config, Environment env) {
 		env.jersey().register(UserResource.class);
 		env.jersey().register(WorkspaceResource.class);
+		env.jersey().register(LoginResource.class);
 
 		env.jersey().register(new AbstractBinder() {
 			@Override
 			protected void configure() {
-				bindFactory(LoggedInUserFactory.class).to(RCUser.class).in(RequestScoped.class);
-				bind(UserInjectResolver.class)
-					.to(new TypeLiteral<InjectionResolver<UserInject>>(){})
-					.in(Singleton.class);
 				bindFactory(DBIFactory.class).to(DBI.class).in(RequestScoped.class);
 				bind(Rc2DBInjectResolver.class)
 					.to(new TypeLiteral<InjectionResolver<Rc2DBInject>>(){})
@@ -59,6 +54,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 			}
 		});
 
+		env.jersey().register(new Rc2AuthFilter(dbfactory));
 	}
 
 	static class DBIFactory implements Factory<DBI> {
