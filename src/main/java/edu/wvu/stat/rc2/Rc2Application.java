@@ -60,6 +60,8 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		});
 
 		env.jersey().register(new Rc2AuthFilter(dbfactory));
+		
+		env.healthChecks().register("database", new DatabaseHealthCheck(dbfactory));
 	}
 
 	static class DBIFactory implements Factory<DBI> {
