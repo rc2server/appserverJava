@@ -1,10 +1,12 @@
 package edu.wvu.stat.rc2.resources;
 
 import java.security.SecureRandom;
+import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -25,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCLoginTokenQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
+import edu.wvu.stat.rc2.persistence.RCWorkspace;
 
 @Path("/login")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,6 +46,14 @@ public class LoginResource extends BaseResource {
 		
 	}
 
+	@GET
+	public Response checkLogin() {
+		RCUser user = getUser();
+		if (null == user)
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		return Response.ok(new LoginOutput(user, _dbi)).build();
+	}
+	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response loginUser(@Valid LoginInput input) {
@@ -55,7 +66,7 @@ public class LoginResource extends BaseResource {
 		RCLoginToken token = tokenDao.createToken(user.getId(), random.nextLong(), random.nextLong());
 		
 		NewCookie me = new NewCookie("me", token.getCookieValue(), "/", "", "", NewCookie.DEFAULT_MAX_AGE, true);
-		return Response.ok(new LoginOutput(user.getId())).cookie(me).build();
+		return Response.ok(new LoginOutput(user, _dbi)).cookie(me).build();
 	}
 	
 	static class LoginInput {
@@ -73,13 +84,17 @@ public class LoginResource extends BaseResource {
 	}
 	
 	static class LoginOutput {
-		final int _userid;
+		final RCUser _user;
+		final List<RCWorkspace> _wspaces;
 		
-		LoginOutput(int userid) {
-			_userid = userid;
+		LoginOutput(RCUser user, DBI dbi) {
+			_user = user;
+			RCWorkspace.Queries dao = dbi.onDemand(RCWorkspace.Queries.class);
+			_wspaces = dao.ownedByUser(user.getId());
 		}
 		
-		public int getUserId() { return _userid; }
+		public RCUser getUser() { return _user; }
+		public List<RCWorkspace> getWorkspaces() { return _wspaces; }
 		
 	}
 }

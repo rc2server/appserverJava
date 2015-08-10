@@ -37,8 +37,8 @@ public class Rc2AuthFilter implements ContainerRequestFilter {
 	@Override
 	public void filter(ContainerRequestContext requestContext) throws IOException {
 		final String path = requestContext.getUriInfo().getPath();
-		//always allow login requests
-		if (path.equals("login"))
+		//always allow login requests via POST
+		if (path.equals("login") && requestContext.getMethod().equals("POST"))
 			return;
 
 		//for robots, return a basic string saying everything is disallowed
