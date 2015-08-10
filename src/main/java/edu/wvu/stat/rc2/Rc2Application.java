@@ -9,6 +9,8 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.skife.jdbi.v2.DBI;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+
 import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
 import edu.wvu.stat.rc2.resources.LoginResource;
 import edu.wvu.stat.rc2.resources.UserResource;
@@ -40,6 +42,9 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	
 	@Override
 	public void run(Rc2AppConfiguration config, Environment env) {
+	
+		if (config.getPrettyPrint())
+			env.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 		env.jersey().register(UserResource.class);
 		env.jersey().register(WorkspaceResource.class);
 		env.jersey().register(LoginResource.class);

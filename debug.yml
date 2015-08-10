@@ -1,4 +1,6 @@
 server:
+  gzip:
+    enabled: true #not sure this is working
   applicationConnectors:
     - type: http
       port: 8080
@@ -11,3 +13,6 @@ server:
 #        - TLSv2
 #        - TLSv3
 #      validateCerts: false
+
+
+prettyPrint: true
