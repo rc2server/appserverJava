@@ -37,7 +37,7 @@ CREATE FUNCTION rcfile_notifyi() RETURNS trigger
     AS $$
 DECLARE
 BEGIN
-perform pg_notify(cast('rcfile' as text), 'i' || cast(new.id as text)|| '/' || cast(coalesce(new.wspaceid, 0) as text)|| '/' || cast(coalesce(new.projectid, 0) as text));
+perform pg_notify(cast('rcfile' as text), 'i' || cast(new.id as text) || '/0/0');
 return new;
 END;
 $$;
@@ -54,7 +54,7 @@ CREATE FUNCTION rcfile_notifyu() RETURNS trigger
     AS $$
 DECLARE
 BEGIN
-perform pg_notify(cast('rcfile' as text), 'u' || cast(old.id as text)|| '/' || cast(coalesce(old.wspaceid, 0) as text)|| '/' || cast(coalesce(old.projectid, 0) as text));
+perform pg_notify(cast('rcfile' as text), 'u' || cast(old.id as text) || '/0/0');
 return new;
 END;
 $$;
