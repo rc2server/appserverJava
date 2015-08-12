@@ -18,15 +18,22 @@ public class TransactionHandleWrapper implements AutoCloseable {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
+		_h.begin();
 	}
 
 	public <T> T addDao(Class<T> type) {
 		return _h.attach(type);
 	}
 	
-	/** closes the open Handle, but not the DBI. */
+	public void rollback() {
+		_h.rollback();
+	}
+	
+	/** commits the transaction and closes the open Handle, but not the DBI. */
 	@Override
 	public void close() {
+		if (_h.isInTransaction())
+			_h.commit();
 		_h.close();
 	}
 }
