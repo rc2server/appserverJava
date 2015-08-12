@@ -11,7 +11,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class RCUser implements PersistentObject {
+public class RCUser {
 	private int id, version;
 	private String login, firstName, lastName, email, hashedPassword;
 	private boolean admin, enabled;
