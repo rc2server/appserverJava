@@ -12,10 +12,13 @@ import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 
 @AutoValue
+@JsonIgnoreProperties(value={"files"}, allowGetters=true)
 public abstract class RCWorkspace {
 	
 	@JsonCreator
@@ -36,6 +39,14 @@ public abstract class RCWorkspace {
 	static RCWorkspace createFromResultSet(ResultSet rs) throws SQLException {
 		return new AutoValue_RCWorkspace(rs.getInt("id"), rs.getInt("version"), rs.getInt("userId"), rs.getString("name"));
 	}
+	
+	private List<RCFile> _files;
+	public List<RCFile> getFiles() { return _files; }
+	public void setFiles(List<RCFile> files) {
+		_files = ImmutableList.copyOf(files);
+	}
+	
+	
 	
 	public static class RCWorkspaceMapper implements ResultSetMapper<RCWorkspace> {
 		public RCWorkspaceMapper() {}

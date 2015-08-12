@@ -35,6 +35,10 @@
 
 * After importing the maven project, be sure to remove eclipse's junit library from Properties->Java Build Path->Libraries. It will include versions of hamcrest that don't match with that used by the maven build.
 
+## Password hashing
+
+To get a hashed password to insert in the database, use `mvn exec:java -Dexec.mainClass="edu.wvu.stat.rc2.Rc2Application" -Dexec.args="hashpw"`
+
 ## Style conventions
 
 * Tabs, not spaces.

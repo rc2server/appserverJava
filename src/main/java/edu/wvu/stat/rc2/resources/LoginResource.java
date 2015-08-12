@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import edu.wvu.stat.rc2.persistence.RCFileQueries;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCLoginTokenQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
@@ -91,6 +92,10 @@ public class LoginResource extends BaseResource {
 			_user = user;
 			RCWorkspace.Queries dao = dbi.onDemand(RCWorkspace.Queries.class);
 			_wspaces = dao.ownedByUser(user.getId());
+			RCFileQueries fileDao = dbi.onDemand(RCFileQueries.class);
+			for (RCWorkspace wspace : _wspaces) {
+				wspace.setFiles(fileDao.filesForWorkspaceId(wspace.getId()));
+			}
 		}
 		
 		public RCUser getUser() { return _user; }

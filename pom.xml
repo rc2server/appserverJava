@@ -6,6 +6,14 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+		<dwversion>0.9.0-rc3</dwversion>
+		<jackson.version>2.6.1</jackson.version>
+    </properties>
+
   	<repositories>
 		<repository>
 			 <id>jitpack.io</id>
@@ -25,6 +33,11 @@
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
+		</dependency>
+ 		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.jeremyh</groupId>
@@ -69,12 +82,6 @@
 			<scope>provided</scope>
 		</dependency>
     </dependencies>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-		<dwversion>0.8.2</dwversion>
-    </properties>
     <build>
     	<plugins>
     		<plugin>
