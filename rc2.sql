@@ -747,8 +747,3 @@ ALTER TABLE ONLY rcworkspacedata
 --
 -- PostgreSQL database dump complete
 --
-
-insert into rcuser (id,login,email,firstname,lastname,admin,passworddata) values (1,'test','cornholio@stat.wvu.edu','Great','Cornholio', false, '$2a$10$dyOnrkOTlNEjQsidwwvVeeCyKTIUNRWgoqLVSZFwlP0cn5tUdizaG');
-insert into rcworkspace (id, userid, name) values (1, 1, 'foofy');
-insert into rcworkspace (id, userid, name) values (2, 1, 'thrice');
-
