@@ -105,7 +105,7 @@ public class WorkspaceResource extends BaseResource {
 			_name = name;
 		}
 		
-		public @Min(1) int getId() { return _id; }
-		public @NotEmpty String getName() { return _name; }
+		public @JsonProperty @Min(1) int getId() { return _id; }
+		public @JsonProperty @NotEmpty String getName() { return _name; }
 	}
 }

@@ -34,10 +34,11 @@ public class RCFileTest {
 			assert(rawFile.exists());
 			RCFile file = dao.createFile(1, rawFile.getName(), rawFile);
 			try {
-				assertThat(file.fileSize(), is((int)rawFile.length()));
-				assertThat(file.name(), is(rawFile.getName()));
+				assertThat(file.getFileSize(), is((int)rawFile.length()));
+				assertThat(file.getName(), is(rawFile.getName()));
+//				dao.createFile(1, "foo.R", rawFile);
 			} finally {
-				dao.deleteFile(file.id());
+				dao.deleteFile(file.getId());
 			}
 		}
 	}
@@ -52,10 +53,10 @@ public class RCFileTest {
 			assert(rawFile.exists());
 			RCFile file = dao.createFileWithStream(1, rawFile.getName(), new FileInputStream(rawFile));
 			try {
-				assertThat(file.fileSize(), is((int)rawFile.length()));
-				assertThat(file.name(), is(rawFile.getName()));
+				assertThat(file.getFileSize(), is((int)rawFile.length()));
+				assertThat(file.getName(), is(rawFile.getName()));
 			} finally {
-				dao.deleteFile(file.id());
+				dao.deleteFile(file.getId());
 			}
 		}
 	}

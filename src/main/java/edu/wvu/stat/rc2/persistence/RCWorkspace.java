@@ -13,38 +13,34 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.auto.value.AutoValue;
 
-public final class RCWorkspace implements PersistentObject {
-	private final int _id, _version, _userId;
-	private final String _name;
+@AutoValue
+public abstract class RCWorkspace {
 	
 	@JsonCreator
-	public RCWorkspace(@JsonProperty("id") int id, @JsonProperty("version") int version, 
-			@JsonProperty("userId") int userId, @JsonProperty("name") String name) 
+	public static RCWorkspace create(
+			@JsonProperty("id") int id, 
+			@JsonProperty("version") int version, 
+			@JsonProperty("userId") int userId, 
+			@JsonProperty("name") String name) 
 	{
-		_id = id;
-		_version = version;
-		_userId = userId;
-		_name = name;
+		return new AutoValue_RCWorkspace(id, version, userId, name);
 	}
 	
-	@JsonProperty("id")
-	public int getId() { return _id; }
-	
-	@JsonProperty("version")
-	public int getVersion() { return _version; }
-	
-	@JsonProperty("userId")
-	public int getUserId() { return _userId; }
-	
-	@JsonProperty("name")
-	public String getName() { return _name; }
+	public abstract @JsonProperty int getId();
+	public abstract @JsonProperty int getVersion();
+	public abstract @JsonProperty int getUserId();
+	public abstract @JsonProperty String getName();
+
+	static RCWorkspace createFromResultSet(ResultSet rs) throws SQLException {
+		return new AutoValue_RCWorkspace(rs.getInt("id"), rs.getInt("version"), rs.getInt("userId"), rs.getString("name"));
+	}
 	
 	public static class RCWorkspaceMapper implements ResultSetMapper<RCWorkspace> {
 		public RCWorkspaceMapper() {}
 		public RCWorkspace map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
-			RCWorkspace obj = new RCWorkspace(rs.getInt("id"), rs.getInt("version"), rs.getInt("userid"), rs.getString("name"));
-			return obj;
+			return RCWorkspace.createFromResultSet(rs);
 		}
 	}
 	

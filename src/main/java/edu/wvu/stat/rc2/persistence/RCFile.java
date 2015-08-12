@@ -37,13 +37,13 @@ public abstract class RCFile {
 				rs.getInt("fileSize"));
 	}
 	
-	abstract int id();
-	abstract int wspaceId();
-	abstract String name();
-	abstract int version();
-	abstract Date dateCreated();
-	abstract Date lastModified();
-	abstract int fileSize();
+	public abstract int getId();
+	public abstract int getWspaceId();
+	public abstract String getName();
+	public abstract int getVersion();
+	public abstract Date getDateCreated();
+	public abstract Date getLastModified();
+	public abstract int getFileSize();
 
 	
 	public static class RCFileMapper implements ResultSetMapper<RCFile> {
