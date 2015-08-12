@@ -3,47 +3,58 @@ package edu.wvu.stat.rc2.persistence;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import javax.annotation.Nullable;
+
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.auto.value.AutoValue;
 
-public class RCUser {
-	private int id, version;
-	private String login, firstName, lastName, email, hashedPassword;
-	private boolean admin, enabled;
+@AutoValue
+public abstract class RCUser {
 	
-	public int getId() { return this.id; }
-	public int getVersion() { return this.version; }
+	@JsonCreator
+	public static RCUser create(@JsonProperty("id") int id,
+			@JsonProperty("version") int version,
+			@JsonProperty("login") String login, 
+			@JsonProperty("firstName") @Nullable String firstName, 
+			@JsonProperty("lastName") @Nullable String lastName, 
+			@JsonProperty("email") String email, 
+			@JsonProperty("admin") boolean admin, 
+			@JsonProperty("enabled") boolean enabled, 
+			@JsonProperty("hashedPassword") @Nullable String hashedPassword)
+	{
+		return new AutoValue_RCUser(id, version, login, firstName, lastName, email, admin, enabled, hashedPassword);
+	}
 	
-	public String getLogin() { return this.login; }
-	public String getFirstName() { return this.firstName; }
-	public String getLastName() { return this.lastName; }
-	public String getEmail() { return this.email; }
-	public boolean isAdmin() { return this.admin; }
-	public boolean isEnabled() { return this.enabled; }
+	static RCUser createFromResultSet(ResultSet rs) throws SQLException {
+		return new AutoValue_RCUser(rs.getInt("id"), rs.getInt("version"), rs.getString("login"),
+				rs.getString("firstName"), rs.getString("lastName"), rs.getString("email"),
+				rs.getBoolean("admin"), rs.getBoolean("enabled"), rs.getString("passworddata"));
+	}
 	
-	@JsonIgnore
-	public String getHashedPassword() { return this.hashedPassword; }
+	public abstract int getId();
+	public abstract int getVersion();
+	
+	public abstract String getLogin();
+	@Nullable public abstract String getFirstName();
+	@Nullable public abstract String getLastName();
+	public abstract String getEmail();
+	public abstract boolean isAdmin();
+	public abstract boolean isEnabled();
+	@JsonIgnore @Nullable public abstract String getHashedPassword();
 
 	
 	public static class RCUserMapper implements ResultSetMapper<RCUser> {
 		public RCUserMapper() {}
 		public RCUser map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
-			RCUser user = new RCUser();
-			user.id = rs.getInt("id");
-			user.version = rs.getInt("version");
-			user.login = rs.getString("login");
-			user.firstName = rs.getString("firstName");
-			user.lastName = rs.getString("lastName");
-			user.email = rs.getString("email");
-			user.admin = rs.getBoolean("admin");
-			user.enabled = rs.getBoolean("enabled");
-			user.hashedPassword = rs.getString("passworddata");
-			return user;
+			return RCUser.createFromResultSet(rs);
 		}
 	}
 	
