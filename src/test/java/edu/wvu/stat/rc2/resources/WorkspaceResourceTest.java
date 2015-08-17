@@ -17,12 +17,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import edu.wvu.stat.rc2.RCCustomError;
+import edu.wvu.stat.rc2.RCIntegrationTest;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import io.dropwizard.testing.junit.ResourceTestRule;
 
+@Category(RCIntegrationTest.class)
 public class WorkspaceResourceTest extends BaseResourceTest {
 
 	@ClassRule

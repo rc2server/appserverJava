@@ -5,11 +5,14 @@ import static org.junit.Assert.*;
 import org.json.JSONException;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import edu.wvu.stat.rc2.RCIntegrationTest;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import io.dropwizard.testing.junit.ResourceTestRule;
 
+@Category(RCIntegrationTest.class)
 public class UserResourceTest extends BaseResourceTest {
 	
 	@ClassRule
