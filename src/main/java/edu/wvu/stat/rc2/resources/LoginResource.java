@@ -29,6 +29,7 @@ import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCLoginTokenQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
+import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 
 @Path("/login")
 @Produces(MediaType.APPLICATION_JSON)
@@ -90,7 +91,7 @@ public class LoginResource extends BaseResource {
 		
 		LoginOutput(RCUser user, DBI dbi) {
 			_user = user;
-			RCWorkspace.Queries dao = dbi.onDemand(RCWorkspace.Queries.class);
+			RCWorkspaceQueries dao = dbi.onDemand(RCWorkspaceQueries.class);
 			_wspaces = dao.ownedByUser(user.getId());
 			RCFileQueries fileDao = dbi.onDemand(RCFileQueries.class);
 			for (RCWorkspace wspace : _wspaces) {

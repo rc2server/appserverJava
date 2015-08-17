@@ -24,7 +24,7 @@ public class RCWorkspaceDataTest {
 		byte[] upData = new byte[512];
 		_random.nextBytes(upData);
 		
-		RCWorkspace.Queries dao = _dbi.onDemand(RCWorkspace.Queries.class);
+		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
 		RCWorkspaceData.Queries dataDao = _dbi.onDemand(RCWorkspaceData.Queries.class);
 		int wsId = dao.createWorkspace("testwsdata", 1);
 		try {

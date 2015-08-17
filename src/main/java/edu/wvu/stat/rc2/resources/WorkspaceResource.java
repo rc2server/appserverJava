@@ -26,8 +26,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
+import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 
-@Path("/workspaces")
+@Path("workspaces")
 @Produces(MediaType.APPLICATION_JSON)
 public class WorkspaceResource extends BaseResource {
 	final static Logger log= LoggerFactory.getLogger(WorkspaceResource.class);
@@ -45,8 +46,8 @@ public class WorkspaceResource extends BaseResource {
 	@GET
 	public List<RCWorkspace> workspaces() {
 		RCUser user = getUser();
-		RCWorkspace.Queries dao = _dbi.onDemand(RCWorkspace.Queries.class);
-		List<RCWorkspace> wspaces = dao.ownedByUser(user.getId());
+		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
+		List<RCWorkspace> wspaces = dao.ownedByUserIncludingFiles(user.getId());
 		if (null == wspaces) {
 			log.warn(String.format("no workspaces found for user %s", user.getLogin()));
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -57,7 +58,7 @@ public class WorkspaceResource extends BaseResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public RCWorkspace createWorkspace(@Valid WorkspacePostInput input) {
-		RCWorkspace.Queries dao = _dbi.onDemand(RCWorkspace.Queries.class);
+		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
 		RCWorkspace ws = dao.findByName(input.getName());
 		if (ws != null)
 			throwCustomRestError(RCRestError.DuplicateName, "workspace");
@@ -69,7 +70,7 @@ public class WorkspaceResource extends BaseResource {
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	public RCWorkspace updateWorkspace(@Valid WorkspacePutInput input) {
-		RCWorkspace.Queries dao = _dbi.onDemand(RCWorkspace.Queries.class);
+		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
 		int upcount = dao.updateWorkspace(input.getId(), input.getName());
 		if (upcount !=1)
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -79,7 +80,7 @@ public class WorkspaceResource extends BaseResource {
 	@DELETE
 	@Path("{id}")
 	public Response deleteWorkspace(@PathParam("id") int id) {
-		RCWorkspace.Queries dao = _dbi.onDemand(RCWorkspace.Queries.class);
+		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
 		dao.deleteWorkspace(id);
 		return Response.status(Response.Status.NO_CONTENT).build();
 	}
