@@ -19,6 +19,7 @@ import edu.wvu.stat.rc2.rs.Rc2DBInject;
 import edu.wvu.stat.rc2.rs.Rc2DBInjectResolver;
 import edu.wvu.stat.rc2.server.HashPasswordCommand;
 import io.dropwizard.Application;
+import io.dropwizard.forms.MultiPartBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
@@ -38,6 +39,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	@Override
 	public void initialize(Bootstrap<Rc2AppConfiguration> bootstrap) {
 		bootstrap.addCommand(new HashPasswordCommand());
+		bootstrap.addBundle(new MultiPartBundle());
 	}
 	
 	@Override
@@ -47,6 +49,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 			env.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 		env.jersey().register(UserResource.class);
 		env.jersey().register(WorkspaceResource.class);
+//		env.jersey().register(FileResource.class);
 		env.jersey().register(LoginResource.class);
 
 		env.jersey().register(new AbstractBinder() {

@@ -15,6 +15,7 @@ import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.wvu.stat.rc2.PermissionChecker;
 import edu.wvu.stat.rc2.RCCustomError;
 import edu.wvu.stat.rc2.RCError;
 import edu.wvu.stat.rc2.persistence.RCUser;
@@ -27,6 +28,7 @@ public abstract class BaseResource {
 	@Context SecurityContext _securityContext;
 	@Rc2DBInject DBI _dbi;
 	private RCUser _testUser;
+	private PermissionChecker _permChecker;
 
 	public BaseResource() {}
 
@@ -36,6 +38,12 @@ public abstract class BaseResource {
 		_testUser = user;
 	}
 
+	protected PermissionChecker getPermChecker() {
+		if (null == _permChecker)
+			_permChecker = new PermissionChecker(_dbi, getUser());
+		return _permChecker;
+	}
+	
 	protected RCUser getUser() {
 		Principal p = _securityContext.getUserPrincipal();
 		if (p instanceof RCUserPrincipal)

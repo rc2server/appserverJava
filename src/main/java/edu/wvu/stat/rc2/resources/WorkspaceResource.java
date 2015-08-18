@@ -1,5 +1,6 @@
 package edu.wvu.stat.rc2.resources;
 
+import java.io.InputStream;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -16,6 +17,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
@@ -24,11 +27,14 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import edu.wvu.stat.rc2.jdbi.TransactionHandleWrapper;
+import edu.wvu.stat.rc2.persistence.RCFile;
+import edu.wvu.stat.rc2.persistence.RCFileQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 
-@Path("workspaces")
+@Path("/workspaces")
 @Produces(MediaType.APPLICATION_JSON)
 public class WorkspaceResource extends BaseResource {
 	final static Logger log= LoggerFactory.getLogger(WorkspaceResource.class);
@@ -40,9 +46,44 @@ public class WorkspaceResource extends BaseResource {
 
 	public WorkspaceResource(DBI dbi, RCUser user) {
 		super(dbi, user);
-		
 	}
 
+/*	@Path("{id}/files")
+	public Class<FileResource> fileResource(@PathParam("id") int wspaceId) {
+		log.info(String.format("request for wspace files %d", wspaceId));
+		return FileResource.class;
+	}
+*/	
+	@Path("{id}/files")
+	@POST
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public Response uploadFile(
+			@PathParam("id") int pathId,
+			@FormDataParam("wspaceId") int wspaceId,
+			@FormDataParam("file") InputStream inStream, 
+			@FormDataParam("file") FormDataContentDisposition fileDetails) 
+	{
+		try (TransactionHandleWrapper trans = new TransactionHandleWrapper(_dbi)) {
+			RCWorkspaceQueries dao = trans.addDao(RCWorkspaceQueries.class);
+			RCWorkspace wspace = dao.findById(wspaceId);
+			if (null == wspace)
+				throw new WebApplicationException(Response.Status.BAD_REQUEST);
+			if (!getPermChecker().canAccessWorkspace(wspace))
+				throw new WebApplicationException(Response.Status.FORBIDDEN);
+		
+
+			RCFileQueries fileDao = trans.addDao(RCFileQueries.class);
+			RCFile file = fileDao.createFileWithStream(wspaceId, fileDetails.getFileName(), inStream);
+			if (null == file) //should really be impossible
+				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+		
+			return Response.status(Response.Status.CREATED).entity(file).build();
+		}
+	}
+	
+	
+	// MARK: actual workspace methods
+	
 	@GET
 	public List<RCWorkspace> workspaces() {
 		RCUser user = getUser();
