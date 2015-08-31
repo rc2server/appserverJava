@@ -6,8 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
@@ -27,6 +29,7 @@ import edu.wvu.stat.rc2.rs.Rc2SecurityContext;
 public abstract class BaseResource {
 	final static Logger log= LoggerFactory.getLogger(BaseResource.class);
 	
+	@Context  HttpServletRequest _servletRequest;
 	@Context SecurityContext _securityContext;
 	@Rc2DBInject DBI _dbi;
 	private RCUser _testUser;
@@ -55,8 +58,11 @@ public abstract class BaseResource {
 	}
 	
 	protected RCLoginToken getLoginToken() {
-		Rc2SecurityContext ctx = (Rc2SecurityContext)_securityContext;
-		return ctx.getToken();
+		if (_securityContext instanceof Rc2SecurityContext) {
+			Rc2SecurityContext ctx = (Rc2SecurityContext)_securityContext;
+			return ctx.getToken();
+		}
+		return (RCLoginToken) _servletRequest.getAttribute("loginToken");
 	}
 	
 	public void throwRestError(RCRestError error) throws WebApplicationException {

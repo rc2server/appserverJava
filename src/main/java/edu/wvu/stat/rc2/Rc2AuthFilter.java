@@ -75,6 +75,7 @@ public class Rc2AuthFilter implements ContainerRequestFilter {
 		}
 		requestContext.setProperty("user", user);
 		requestContext.setSecurityContext(new Rc2SecurityContext(user, token));
+		requestContext.setProperty("loginToken", token);
 	}
 
 	private void abortRequest(ContainerRequestContext requestContext, String error) {
