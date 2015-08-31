@@ -14,8 +14,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -54,6 +58,39 @@ public class WorkspaceResource extends BaseResource {
 		return FileResource.class;
 	}
 */	
+	
+	@Path("{id}/files/{fid}")
+	@GET
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public final Response getFile(@Context Request request, @PathParam("id") int wspaceId, @PathParam("fid") int fileId) {
+		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
+		RCWorkspace wspace = dao.findById(wspaceId);
+		checkWorkspacePermissions(wspace);
+		RCFileQueries fdao = _dbi.onDemand(RCFileQueries.class);
+		RCFile file = fdao.findById(fileId);
+		if (null == file)
+			throw new WebApplicationException(Response.Status.NOT_FOUND);
+		EntityTag etag = new EntityTag(file.getETag());
+		ResponseBuilder builder = request.evaluatePreconditions(etag);
+		if (builder != null)
+			return builder.build();
+		byte[] fileData = fdao.fileDataById(fileId);
+		Response rsp = Response.ok().entity(fileData).tag(etag).lastModified(file.getLastModified()).build();
+		return rsp;
+	}
+	
+	
+	@Path("{id}/files")
+	@GET
+	public List<RCFile> getFiles(@PathParam("id") int wspaceId) {
+		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
+		RCWorkspace wspace = dao.findById(wspaceId);
+		checkWorkspacePermissions(wspace);
+		RCFileQueries fdao = _dbi.onDemand(RCFileQueries.class);
+		return fdao.filesForWorkspaceId(wspaceId);
+	}
+	
+	
 	@Path("{id}/files")
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -66,11 +103,7 @@ public class WorkspaceResource extends BaseResource {
 		try (TransactionHandleWrapper trans = new TransactionHandleWrapper(_dbi)) {
 			RCWorkspaceQueries dao = trans.addDao(RCWorkspaceQueries.class);
 			RCWorkspace wspace = dao.findById(wspaceId);
-			if (null == wspace)
-				throw new WebApplicationException(Response.Status.BAD_REQUEST);
-			if (!getPermChecker().canAccessWorkspace(wspace))
-				throw new WebApplicationException(Response.Status.FORBIDDEN);
-		
+			checkWorkspacePermissions(wspace);
 
 			RCFileQueries fileDao = trans.addDao(RCFileQueries.class);
 			RCFile file = fileDao.createFileWithStream(wspaceId, fileDetails.getFileName(), inStream);
@@ -112,6 +145,8 @@ public class WorkspaceResource extends BaseResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public RCWorkspace updateWorkspace(@Valid WorkspacePutInput input) {
 		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
+		RCWorkspace wspace = dao.findById(input.getId());
+		checkWorkspacePermissions(wspace);
 		int upcount = dao.updateWorkspace(input.getId(), input.getName());
 		if (upcount !=1)
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -122,8 +157,18 @@ public class WorkspaceResource extends BaseResource {
 	@Path("{id}")
 	public Response deleteWorkspace(@PathParam("id") int id) {
 		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
+		RCWorkspace wspace = dao.findById(id);
+		checkWorkspacePermissions(wspace);
 		dao.deleteWorkspace(id);
 		return Response.status(Response.Status.NO_CONTENT).build();
+	}
+	
+	
+	private void checkWorkspacePermissions(RCWorkspace wspace) throws WebApplicationException {
+		if (null == wspace)
+			throw new WebApplicationException(Response.Status.BAD_REQUEST);
+		if (!getPermChecker().canAccessWorkspace(wspace))
+			throw new WebApplicationException(Response.Status.FORBIDDEN);
 	}
 	
 	public static class WorkspacePostInput {
