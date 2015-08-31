@@ -3,7 +3,7 @@ server:
     enabled: true #not sure this is working
   applicationConnectors:
     - type: http
-      port: 8080
+      port: 8088
 #    - type: https
 #      port: 8443
 #      keyStorePath: barney.keystore

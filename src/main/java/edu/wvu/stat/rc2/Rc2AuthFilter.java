@@ -2,7 +2,6 @@ package edu.wvu.stat.rc2;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.Principal;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -10,7 +9,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 
 import org.skife.jdbi.v2.DBI;
@@ -21,7 +19,7 @@ import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCLoginTokenQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
-import edu.wvu.stat.rc2.rs.RCUserPrincipal;
+import edu.wvu.stat.rc2.rs.Rc2SecurityContext;
 
 @Provider
 @Priority(Priorities.AUTHORIZATION)
@@ -46,14 +44,19 @@ public class Rc2AuthFilter implements ContainerRequestFilter {
 			requestContext.abortWith(Response.ok().entity("User-agent: *\nDisallow: /\n").build());
 		}
 
-		//make sure we have an auth cookie
-		Cookie cookie = requestContext.getCookies().get("me");
-		if (null == cookie || null == cookie.getValue()) {
-			abortRequest(requestContext, "me cooking missing");
-			return;
+		//check for auth header first
+		String tokenString = requestContext.getHeaderString("RC2-Auth");
+		if (null == tokenString) {
+			//fall back to auth cookie
+			Cookie cookie = requestContext.getCookies().get("me");
+			if (null == cookie || null == cookie.getValue()) {
+				abortRequest(requestContext, "me cooking missing");
+				return;
+			}
+			tokenString = cookie.getValue();
 		}
-		//split the cookie value into userid,series,token
-		String[] pieces = cookie.getValue().split("_");
+		//split the token string into userid,series,token
+		String[] pieces = tokenString.split("_");
 		if (pieces.length != 3) {
 			abortRequest(requestContext, "auth header not in 3 pieces");
 			return;
@@ -71,7 +74,7 @@ public class Rc2AuthFilter implements ContainerRequestFilter {
 			return;
 		}
 		requestContext.setProperty("user", user);
-		requestContext.setSecurityContext(new Rc2SecurityContext(user));
+		requestContext.setSecurityContext(new Rc2SecurityContext(user, token));
 	}
 
 	private void abortRequest(ContainerRequestContext requestContext, String error) {
@@ -80,30 +83,4 @@ public class Rc2AuthFilter implements ContainerRequestFilter {
 		
 	}
 	
-	static class Rc2SecurityContext implements SecurityContext {
-		RCUserPrincipal _principal;
-		Rc2SecurityContext(RCUser user) {
-			_principal = new RCUserPrincipal(user);
-		}
-		@Override
-		public Principal getUserPrincipal() {
-			return _principal;
-		}
-
-		@Override
-		public boolean isUserInRole(String role) {
-			return false;
-		}
-
-		@Override
-		public boolean isSecure() {
-			return true;
-		}
-
-		@Override
-		public String getAuthenticationScheme() {
-			return "rc2";
-		}
-		
-	}
 }

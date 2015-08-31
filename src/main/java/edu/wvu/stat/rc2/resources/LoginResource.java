@@ -53,7 +53,7 @@ public class LoginResource extends BaseResource {
 		RCUser user = getUser();
 		if (null == user)
 			return Response.status(Response.Status.UNAUTHORIZED).build();
-		return Response.ok(new LoginOutput(user, _dbi)).build();
+		return Response.ok(new LoginOutput(user, _dbi, getLoginToken().getCookieValue())).build();
 	}
 	
 	@POST
@@ -68,7 +68,7 @@ public class LoginResource extends BaseResource {
 		RCLoginToken token = tokenDao.createToken(user.getId(), random.nextLong(), random.nextLong());
 		
 		NewCookie me = new NewCookie("me", token.getCookieValue(), "/", "", "", NewCookie.DEFAULT_MAX_AGE, true);
-		return Response.ok(new LoginOutput(user, _dbi)).cookie(me).build();
+		return Response.ok(new LoginOutput(user, _dbi, token.getCookieValue())).cookie(me).build();
 	}
 	
 	static class LoginInput {
@@ -87,10 +87,12 @@ public class LoginResource extends BaseResource {
 	
 	static class LoginOutput {
 		final RCUser _user;
+		final String _token;
 		final List<RCWorkspace> _wspaces;
 		
-		LoginOutput(RCUser user, DBI dbi) {
+		LoginOutput(RCUser user, DBI dbi, String token) {
 			_user = user;
+			_token = token;
 			RCWorkspaceQueries dao = dbi.onDemand(RCWorkspaceQueries.class);
 			_wspaces = dao.ownedByUser(user.getId());
 			RCFileQueries fileDao = dbi.onDemand(RCFileQueries.class);
@@ -100,6 +102,7 @@ public class LoginResource extends BaseResource {
 		}
 		
 		public RCUser getUser() { return _user; }
+		public String getToken() { return _token; }
 		public List<RCWorkspace> getWorkspaces() { return _wspaces; }
 		
 	}
