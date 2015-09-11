@@ -1,7 +1,5 @@
 package edu.wvu.stat.rc2.rs;
 
-import java.security.Principal;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -23,10 +21,7 @@ public class LoggedInUserFactory implements Factory<RCUser> {
 
 	@Override
 	public RCUser provide() {
-		final Principal principal = _request.getUserPrincipal();
-		if (principal instanceof RCUserPrincipal)
-			return ((RCUserPrincipal)principal).getUser();
-		return null;
+		return (RCUser) _request.getAttribute("rc2user");
 	}
 
 }
