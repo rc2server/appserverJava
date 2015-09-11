@@ -9,7 +9,7 @@ import org.skife.jdbi.v2.Handle;
 */
 
 public class TransactionHandleWrapper implements AutoCloseable {
-	private Handle _h;
+	Handle _h;
 	
 	public TransactionHandleWrapper(DBI dbi) {
 		_h = dbi.open();
@@ -29,6 +29,11 @@ public class TransactionHandleWrapper implements AutoCloseable {
 		_h.rollback();
 	}
 	
+	public void commit() {
+		if (_h.isInTransaction())
+			_h.commit();
+	}
+
 	/** commits the transaction and closes the open Handle, but not the DBI. */
 	@Override
 	public void close() {
