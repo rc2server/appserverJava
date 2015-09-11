@@ -1,6 +1,9 @@
 package edu.wvu.stat.rc2;
 
+import java.util.EnumSet;
+
 import javax.inject.Singleton;
+import javax.servlet.DispatcherType;
 
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.InjectionResolver;
@@ -47,6 +50,8 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	
 		if (config.getPrettyPrint())
 			env.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+		env.servlets().addFilter("Rc2AuthServletFilter", new Rc2AuthServletFilter(dbfactory))
+			.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, "/*");
 		env.jersey().register(UserResource.class);
 		env.jersey().register(WorkspaceResource.class);
 //		env.jersey().register(FileResource.class);
@@ -62,8 +67,6 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 			}
 		});
 
-		env.jersey().register(new Rc2AuthFilter(dbfactory));
-		
 		env.healthChecks().register("database", new DatabaseHealthCheck(dbfactory));
 	}
 

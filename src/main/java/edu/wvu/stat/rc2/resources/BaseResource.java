@@ -1,6 +1,5 @@
 package edu.wvu.stat.rc2.resources;
 
-import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -9,9 +8,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 
 import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
@@ -22,17 +19,14 @@ import edu.wvu.stat.rc2.RCCustomError;
 import edu.wvu.stat.rc2.RCError;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCUser;
-import edu.wvu.stat.rc2.rs.RCUserPrincipal;
 import edu.wvu.stat.rc2.rs.Rc2DBInject;
-import edu.wvu.stat.rc2.rs.Rc2SecurityContext;
 
 public abstract class BaseResource {
 	final static Logger log= LoggerFactory.getLogger(BaseResource.class);
 	
 	@Context  HttpServletRequest _servletRequest;
-	@Context SecurityContext _securityContext;
 	@Rc2DBInject DBI _dbi;
-	private RCUser _testUser;
+	private RCUser _user;
 	private PermissionChecker _permChecker;
 
 	public BaseResource() {}
@@ -40,7 +34,7 @@ public abstract class BaseResource {
 	/** constructor for unit tests to bypass injection */
 	BaseResource(DBI dbi, RCUser user) {
 		_dbi = dbi;
-		_testUser = user;
+		_user = user;
 	}
 
 	protected PermissionChecker getPermChecker() {
@@ -50,18 +44,12 @@ public abstract class BaseResource {
 	}
 	
 	protected RCUser getUser() {
-		Principal p = _securityContext.getUserPrincipal();
-		if (p instanceof RCUserPrincipal)
-			return ((RCUserPrincipal)p).getUser();
-		log.warn("getUser() called on BaseResource subclass while not logged in");
-		return _testUser;
+		if (null == _user)
+			_user = (RCUser)_servletRequest.getAttribute("rc2user");
+		return _user;
 	}
 	
 	protected RCLoginToken getLoginToken() {
-		if (_securityContext instanceof Rc2SecurityContext) {
-			Rc2SecurityContext ctx = (Rc2SecurityContext)_securityContext;
-			return ctx.getToken();
-		}
 		return (RCLoginToken) _servletRequest.getAttribute("loginToken");
 	}
 	
