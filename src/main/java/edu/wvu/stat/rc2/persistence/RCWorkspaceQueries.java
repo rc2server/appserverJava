@@ -22,7 +22,7 @@ public abstract class RCWorkspaceQueries implements GetHandle {
 	@Mapper(RCWorkspaceMapper.class)
 	public abstract RCWorkspace findByName(@Bind("name") String name);
 
-	@SqlQuery("select * from RCWorkspace where userid = :userid")
+	@SqlQuery("select * from RCWorkspace where userid = :userid order by name")
 	@Mapper(RCWorkspaceMapper.class)
 	public abstract List<RCWorkspace> ownedByUser(@Bind("userid") int userid);
 	

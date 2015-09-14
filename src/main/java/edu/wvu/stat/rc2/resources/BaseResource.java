@@ -20,6 +20,7 @@ import edu.wvu.stat.rc2.RCError;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.rs.Rc2DBInject;
+import static edu.wvu.stat.rc2.Rc2AppConfiguration.*;
 
 public abstract class BaseResource {
 	final static Logger log= LoggerFactory.getLogger(BaseResource.class);
@@ -45,12 +46,12 @@ public abstract class BaseResource {
 	
 	protected RCUser getUser() {
 		if (null == _user)
-			_user = (RCUser)_servletRequest.getAttribute("rc2user");
+			_user = (RCUser)_servletRequest.getAttribute(UserSessionKey);
 		return _user;
 	}
 	
 	protected RCLoginToken getLoginToken() {
-		return (RCLoginToken) _servletRequest.getAttribute("loginToken");
+		return (RCLoginToken) _servletRequest.getAttribute(LoginTokenKey);
 	}
 	
 	public void throwRestError(RCRestError error) throws WebApplicationException {

@@ -1,6 +1,7 @@
 package edu.wvu.stat.rc2;
 
 import java.io.IOException;
+
 import java.math.BigInteger;
 
 import javax.servlet.Filter;
@@ -19,6 +20,7 @@ import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCLoginTokenQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
+import static edu.wvu.stat.rc2.Rc2AppConfiguration.*;
 
 public class Rc2AuthServletFilter implements Filter {
 
@@ -52,11 +54,15 @@ public class Rc2AuthServletFilter implements Filter {
 			return;
 		}
 
-		//check for auth header first
+		//check for auth header first, then websocket protocol
 		String tokenString = req.getHeader("RC2-Auth");
 		if (null == tokenString) {
-			abortRequest(response, Response.SC_UNAUTHORIZED, "unauthorized");
-			return;
+			//if connecting via websocket, might be stashed there
+			tokenString = req.getHeader("Sec-WebSocket-Protocol");
+			if (null == tokenString) {
+				abortRequest(response, Response.SC_UNAUTHORIZED, "unauthorized");
+				return;
+			}
 		}
 
 		//split the token string into userid,series,token
@@ -77,8 +83,8 @@ public class Rc2AuthServletFilter implements Filter {
 			abortRequest(response, Response.SC_UNAUTHORIZED, "Failed to find user for token " + token.getId());
 			return;
 		}
-		request.setAttribute("rc2user", user);
-		request.setAttribute("rc2token", token);
+		request.setAttribute(UserSessionKey, user);
+		request.setAttribute(LoginTokenKey, token);
 }
 
 	private void abortRequest(ServletResponse rsp, int code, String error) throws IOException {

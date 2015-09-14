@@ -39,6 +39,12 @@
 
 To get a hashed password to insert in the database, use `mvn exec:java -Dexec.mainClass="edu.wvu.stat.rc2.Rc2Application" -Dexec.args="hashpw"`
 
+## Sessions
+
+The RCSessionManager is a singleton that caches open sessions. It runs a cleanup task periodically that closed unused sessions. It also listens for rcfile notifications from the database and passes them on to any open sessions.
+
+An instance of RCSession is opened for each workspace currently being used. Multiple websockets can connect to a single session. 
+
 ## Style conventions
 
 * Tabs, not spaces.

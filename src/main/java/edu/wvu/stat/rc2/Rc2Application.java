@@ -21,6 +21,7 @@ import edu.wvu.stat.rc2.resources.WorkspaceResource;
 import edu.wvu.stat.rc2.rs.Rc2DBInject;
 import edu.wvu.stat.rc2.rs.Rc2DBInjectResolver;
 import edu.wvu.stat.rc2.server.HashPasswordCommand;
+import edu.wvu.stat.rc2.ws.RCSessionServlet;
 import io.dropwizard.Application;
 import io.dropwizard.forms.MultiPartBundle;
 import io.dropwizard.setup.Bootstrap;
@@ -56,6 +57,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		env.jersey().register(WorkspaceResource.class);
 //		env.jersey().register(FileResource.class);
 		env.jersey().register(LoginResource.class);
+		env.getApplicationContext().addServlet(RCSessionServlet.class, "/ws*");
 
 		env.jersey().register(new AbstractBinder() {
 			@Override

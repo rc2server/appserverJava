@@ -31,6 +31,9 @@ public abstract class RCFileQueries {
 	@Mapper(RCFileMapper.class)
 	public abstract List<RCFile> filesForWorkspaceId(@Bind("wspaceId") int wspaceID);
 	
+	@SqlQuery("select bindata from rcfiledata where id = :id")
+	public abstract byte[] fileDataById(@Bind("id") int id);
+	
 	@SqlUpdate("delete from rcfile where id = :id")
 	@Mapper(RCFileMapper.class)
 	public abstract int deleteFile(@Bind("id") int id);

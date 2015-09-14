@@ -45,6 +45,9 @@ public abstract class RCFile {
 	public abstract Date getLastModified();
 	public abstract int getFileSize();
 
+	public final String getETag() {
+		return String.format("f/%d/%d", getId(), getVersion());
+	}
 	
 	public static class RCFileMapper implements ResultSetMapper<RCFile> {
 		public RCFileMapper() {}

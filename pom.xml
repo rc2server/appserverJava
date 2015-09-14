@@ -10,7 +10,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-		<dwversion>0.9.0-rc3</dwversion>
+		<dwversion>0.9.0-rc4</dwversion>
+		<jetty.version>9.2.13.v20150730</jetty.version>
 		<jackson.version>2.6.1</jackson.version>
     </properties>
 
@@ -43,6 +44,11 @@
 			<groupId>com.github.jeremyh</groupId>
 			<artifactId>jBcrypt</artifactId>
 			<version>jbcrypt-0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty.websocket</groupId>
+			<artifactId>websocket-servlet</artifactId>
+			<version>${jetty.version}</version>
 		</dependency>
         <dependency>
             <groupId>io.dropwizard</groupId>
