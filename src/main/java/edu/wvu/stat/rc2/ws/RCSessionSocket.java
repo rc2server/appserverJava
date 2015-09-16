@@ -114,6 +114,7 @@ public final class RCSessionSocket {
 	}
 
 	
+	@SuppressWarnings("unused")
 	private void updateUserFromDatabase() {
 		_delegate.websocketUseDatabaseHandle(new VoidHandleCallback() {
 			protected void execute(Handle h) {

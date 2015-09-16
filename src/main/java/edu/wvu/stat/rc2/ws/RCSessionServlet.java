@@ -19,6 +19,12 @@ public class RCSessionServlet extends WebSocketServlet {
 	private static final long serialVersionUID = 1L;
 	static final Logger log = LoggerFactory.getLogger("RCSessionServlet");
 
+	private final RCSessionCache _sessionCache;
+	
+	public RCSessionServlet(RCSessionCache sessionCache) {
+		_sessionCache = sessionCache;
+	}
+	
 	@Override
 	public void configure(WebSocketServletFactory factory) {
 		factory.setCreator(new RC2WebSocketCreator());
@@ -36,7 +42,10 @@ public class RCSessionServlet extends WebSocketServlet {
 					return null;
 				}
 				log.info("websocket got user " + user.getLogin());
-				
+				int wspaceId = Integer.parseInt(req.getRequestPath());
+				RCSession session = _sessionCache.sessionForWorkspace(wspaceId, user.getId());
+				RCSessionSocket socket = new RCSessionSocket(req, session, _sessionCache.getObjectMapper(), user);
+				return socket;
 			} catch (IOException ioe) {
 				//don't care, should never happen
 				log.warn("ioe creating websocket", ioe);
