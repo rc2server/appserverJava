@@ -35,6 +35,13 @@
 
 * After importing the maven project, be sure to remove eclipse's junit library from Properties->Java Build Path->Libraries. It will include versions of hamcrest that don't match with that used by the maven build.
 
+* In Properties->Java Compiler->Annotation Processing:
+
+	* enable project specific settings
+	* enable annotations processing
+	* enable processing in editor
+	* generated source directory: .apt_generated
+	
 ## Password hashing
 
 To get a hashed password to insert in the database, use `mvn exec:java -Dexec.mainClass="edu.wvu.stat.rc2.Rc2Application" -Dexec.args="hashpw"`
@@ -54,6 +61,17 @@ An instance of RCSession is opened for each workspace currently being used. Mult
 * I hate all upper case. Constants/enums will use camel case.
 
 * all model classes start with a RC prefix (even though they are in a package) so generic class names like User and File won't conflict with library classes.
+
+## Postgresql
+
+For development the lastest version of 9.4 should be installed with the command `./configure -prefix=/usr/local/pgsql9.4 --with-perl --without-python --with-bonjour --with-openssl --with-libxml --with-libxslt`
+
+If running on El Capitan, brew needs to be updated, then `brew install openssl` run. Then the install command for pgsql will be `LDFLAGS=-L/usr/local/opt/openssl/lib CPPFLAGS=-I/usr/local/opt/openssl/include ./configure -prefix=/usr/local/pgsql9.4 --with-perl --without-python --with-bonjour --with-openssl --with-libxml --with-libxslt`
+
+In both cases, you should `cd /usr/local; ln -s pgsql9.4 pgsql` to make a proper symlink so you can just add `/usr/local/pgsql/bin` to your path. Also don't forget to run `initdb -D /usr/local/pgsql9.4/data` and `createuser rc2`. 
+
+To setup the test database, run `createdb -O rc2 rc2test`, `psql -U rc2 rc2test < rc2.sql` and `psql -U rc2 rc2test < testData.sql`
+
 
 ## TODO
 
