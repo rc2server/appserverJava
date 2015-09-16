@@ -1,10 +1,12 @@
 package edu.wvu.stat.rc2;
 
 import java.util.EnumSet;
+import java.util.concurrent.ScheduledExecutorService;
 
 import javax.inject.Singleton;
 import javax.servlet.DispatcherType;
 
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.InjectionResolver;
 import org.glassfish.hk2.api.TypeLiteral;
@@ -21,6 +23,7 @@ import edu.wvu.stat.rc2.resources.WorkspaceResource;
 import edu.wvu.stat.rc2.rs.Rc2DBInject;
 import edu.wvu.stat.rc2.rs.Rc2DBInjectResolver;
 import edu.wvu.stat.rc2.server.HashPasswordCommand;
+import edu.wvu.stat.rc2.ws.RCSessionCache;
 import edu.wvu.stat.rc2.ws.RCSessionServlet;
 import io.dropwizard.Application;
 import io.dropwizard.forms.MultiPartBundle;
@@ -35,6 +38,9 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		new Rc2Application().run(args);
 	}
 	
+	private ScheduledExecutorService _execService;
+	private RCSessionCache _sessionCache;
+	
 	@Override
 	public String getName() {
 		return "rc2";
@@ -48,7 +54,11 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	
 	@Override
 	public void run(Rc2AppConfiguration config, Environment env) {
-	
+		_sessionCache = new RCSessionCache(dbfactory, env.getObjectMapper());
+		_execService = env.lifecycle().scheduledExecutorService("rc2-exec", true).build();
+		_sessionCache.scheduleCleanupTask(_execService);
+		env.lifecycle().manage(_sessionCache);
+		
 		if (config.getPrettyPrint())
 			env.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 		env.servlets().addFilter("Rc2AuthServletFilter", new Rc2AuthServletFilter(dbfactory))
@@ -57,7 +67,9 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		env.jersey().register(WorkspaceResource.class);
 //		env.jersey().register(FileResource.class);
 		env.jersey().register(LoginResource.class);
-		env.getApplicationContext().addServlet(RCSessionServlet.class, "/ws*");
+		
+		ServletHolder h = new ServletHolder(new RCSessionServlet(_sessionCache));
+		env.getApplicationContext().addServlet(h, "/ws/*");
 
 		env.jersey().register(new AbstractBinder() {
 			@Override
