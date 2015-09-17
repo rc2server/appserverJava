@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
+import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 
@@ -22,7 +22,7 @@ import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 public final class RCSession implements RCSessionSocket.Delegate {
 	static final Logger log = LoggerFactory.getLogger("RCSession");
 
-	private final PGDataSourceFactory _dbfactory;
+	private final Rc2DataSourceFactory _dbfactory;
 	private RCWorkspace _wspace;
 	private final List<RCSessionSocket> _webSockets;
 	private ObjectMapper _mapper;
@@ -36,7 +36,7 @@ public final class RCSession implements RCSessionSocket.Delegate {
 	 @param workspace The workspace this session represents.
 	 @param mapper An object mapper to use for json conversion. If null, a generic mapper will be created.
 	 */
-	RCSession(PGDataSourceFactory dbfactory, ObjectMapper mapper, int wspaceId) {
+	RCSession(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, int wspaceId) {
 		_dbfactory = dbfactory;
 		_mapper = mapper;
 		if (null == _mapper)

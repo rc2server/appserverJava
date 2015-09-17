@@ -5,10 +5,10 @@ import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 
-import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
+import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 
 public class TransactionHandleWrapperTest {
-	static final PGDataSourceFactory dbfactory = new PGDataSourceFactory();
+	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
 	private DBI _dbi;
 
 

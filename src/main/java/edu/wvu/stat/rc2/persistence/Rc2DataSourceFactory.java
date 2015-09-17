@@ -8,10 +8,10 @@ import com.impossibl.postgres.jdbc.PGDataSource;
 
 import edu.wvu.stat.rc2.jdbi.BigIntegerArgumentFactory;
 
-public class PGDataSourceFactory {
+public class Rc2DataSourceFactory {
 	private DataSource _ds;
 	
-	public PGDataSourceFactory() {
+	public Rc2DataSourceFactory() {
 		PGDataSource pgds=null;
 		pgds = new PGDataSource();
 		pgds.setUser("rc2");

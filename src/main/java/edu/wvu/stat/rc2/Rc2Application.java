@@ -16,7 +16,7 @@ import org.skife.jdbi.v2.DBI;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
+import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.resources.LoginResource;
 import edu.wvu.stat.rc2.resources.UserResource;
 import edu.wvu.stat.rc2.resources.WorkspaceResource;
@@ -31,7 +31,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 public class Rc2Application extends Application<Rc2AppConfiguration> {
-	private static final PGDataSourceFactory dbfactory = new PGDataSourceFactory();
+	private static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
 	
 	
 	public static void main(String[] args) throws Exception {

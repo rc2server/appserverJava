@@ -11,17 +11,17 @@ import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
+import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import io.dropwizard.lifecycle.Managed;
 
 public class RCSessionCache implements Managed {
 	private final ConcurrentHashMap<Number, RCSession> _sessionMap;
-	private final PGDataSourceFactory _dbfactory;
+	private final Rc2DataSourceFactory _dbfactory;
 	private final ObjectMapper _mapper;
 	private CleanupTask _cleanupTask;
 	
-	public RCSessionCache(PGDataSourceFactory dbfactory, ObjectMapper mapper) {
+	public RCSessionCache(Rc2DataSourceFactory dbfactory, ObjectMapper mapper) {
 		_sessionMap = new ConcurrentHashMap<Number, RCSession>();
 		_dbfactory = dbfactory;
 		_mapper = mapper;

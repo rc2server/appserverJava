@@ -15,11 +15,11 @@ import org.skife.jdbi.v2.DBI;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
+import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.persistence.RCUser;
 
 public class RCSessionCacheTest {
-	static final PGDataSourceFactory dbfactory = new PGDataSourceFactory();
+	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
 
 	DBI _dbi;
 	ObjectMapper _mapper;

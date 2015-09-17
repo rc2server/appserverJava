@@ -16,7 +16,7 @@ import org.skife.jdbi.v2.DBI;
 import edu.wvu.stat.rc2.jdbi.TransactionHandleWrapper;
 
 public class RCFileTest {
-	static final PGDataSourceFactory dbfactory = new PGDataSourceFactory();
+	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
 	private DBI _dbi;
 
 	@Before

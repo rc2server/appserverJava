@@ -6,12 +6,12 @@ import org.skife.jdbi.v2.util.IntegerMapper;
 
 import com.codahale.metrics.health.HealthCheck;
 
-import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
+import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 
 public class DatabaseHealthCheck extends HealthCheck {
-	private final PGDataSourceFactory dbFactory;
+	private final Rc2DataSourceFactory dbFactory;
 	
-	public DatabaseHealthCheck(PGDataSourceFactory factory) {
+	public DatabaseHealthCheck(Rc2DataSourceFactory factory) {
 		dbFactory = factory;
 	}
 	

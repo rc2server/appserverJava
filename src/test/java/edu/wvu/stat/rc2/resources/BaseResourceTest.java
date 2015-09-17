@@ -3,11 +3,11 @@ package edu.wvu.stat.rc2.resources;
 import org.skife.jdbi.v2.DBI;
 import static org.mockito.Mockito.*;
 
-import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
+import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.persistence.RCUser;
 
 public abstract class BaseResourceTest {
-	static final PGDataSourceFactory dbfactory = new PGDataSourceFactory();
+	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
 	DBI _dbi;
 	static final RCUser user = mock(RCUser.class);
 

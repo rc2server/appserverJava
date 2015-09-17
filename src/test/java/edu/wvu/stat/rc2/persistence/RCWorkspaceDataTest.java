@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 
 public class RCWorkspaceDataTest {
-	static final PGDataSourceFactory dbfactory = new PGDataSourceFactory();
+	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
 	private final Random _random;
 	DBI _dbi;
 

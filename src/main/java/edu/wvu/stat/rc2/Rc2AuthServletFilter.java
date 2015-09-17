@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Response;
 import org.skife.jdbi.v2.DBI;
 
-import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
+import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCLoginTokenQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
@@ -26,7 +26,7 @@ public class Rc2AuthServletFilter implements Filter {
 
 	DBI _dbi;
 	
-	public Rc2AuthServletFilter(PGDataSourceFactory factory) {
+	public Rc2AuthServletFilter(Rc2DataSourceFactory factory) {
 			_dbi = factory.createDBI();
 	}
 	
