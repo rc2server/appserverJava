@@ -35,9 +35,8 @@ public final class RCSession implements RCSessionSocket.Delegate {
 	 @param dbfactory A factory is passed so that if the connection is dropped for some reason, a new one can be opened.
 	 @param workspace The workspace this session represents.
 	 @param mapper An object mapper to use for json conversion. If null, a generic mapper will be created.
-
 	 */
-	public RCSession(PGDataSourceFactory dbfactory, ObjectMapper mapper, int wspaceId) {
+	RCSession(PGDataSourceFactory dbfactory, ObjectMapper mapper, int wspaceId) {
 		_dbfactory = dbfactory;
 		_mapper = mapper;
 		if (null == _mapper)

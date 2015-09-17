@@ -7,9 +7,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.persistence.PGDataSourceFactory;
+import edu.wvu.stat.rc2.persistence.RCUser;
 import io.dropwizard.lifecycle.Managed;
 
 public class RCSessionCache implements Managed {
@@ -54,7 +57,13 @@ public class RCSessionCache implements Managed {
 		}
 	}
 
-	public RCSession sessionForWorkspace(int wspaceId, int userId) {
+	/**
+		@param req servlet upgrade request to create the websocket with
+		@param wspaceId id of the workspace of the session to use 
+		@param user the user requesting to connect to the specified workspace
+		@return a websocket connected to the requested session
+	 */
+	public RCSessionSocket socketForWorkspaceAndUser(ServletUpgradeRequest req, int wspaceId, RCUser user) {
 		RCSession session=null;
 		synchronized (_sessionMap) {
 			session = _sessionMap.get(wspaceId);
@@ -63,9 +72,9 @@ public class RCSessionCache implements Managed {
 				_sessionMap.put(wspaceId, session);
 			}
 		}
-		return session;
+		RCSessionSocket socket = new RCSessionSocket(req, session, getObjectMapper(), user);
+		return socket;
 	}
-
 	
 	private final class CleanupTask implements Runnable {
 		CleanupTask() {}

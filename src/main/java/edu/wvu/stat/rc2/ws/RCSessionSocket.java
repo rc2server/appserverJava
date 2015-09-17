@@ -62,6 +62,7 @@ public final class RCSessionSocket {
 	public String getDisplayName() { return _displayName; }
 	public String getClient() { return _client; }
 	public long getConnectTime() { return _connectTime; }
+	public Delegate getDelegate() { return _delegate; }
 
 	@OnWebSocketConnect
 	public void onOpen(Session out) {
@@ -134,6 +135,7 @@ public final class RCSessionSocket {
 	}
 
 	interface Delegate {
+		public int getWorkspaceId();
 		public void websocketUseDatabaseHandle(HandleCallback<Void> callback);
 		public Map<String,Object> getSessionDescriptionForWebsocket(RCSessionSocket socket);
 		public void websocketOpened(RCSessionSocket socket);

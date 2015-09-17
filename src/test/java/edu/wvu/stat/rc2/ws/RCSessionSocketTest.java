@@ -43,7 +43,7 @@ public class RCSessionSocketTest {
 		RCUser user = mock(RCUser.class);
 		when(user.getId()).thenReturn(1);
 		when(user.getLogin()).thenReturn("beavis");
-		MyWSDelegate delegate = new MyWSDelegate();
+		MyWSDelegate delegate = new MyWSDelegate(1);
 		RCSessionSocket socket = new RCSessionSocket(_upRequest, delegate, new ObjectMapper(), user);
 		
 		assertThat(socket.getUserId(), is(1));
@@ -66,7 +66,16 @@ public class RCSessionSocketTest {
 	}
 
 	public class MyWSDelegate implements RCSessionSocket.Delegate {
-		public ArrayList<String> messages = new ArrayList<String>();
+		final int _wspaceId;
+		public final ArrayList<String> messages = new ArrayList<String>();
+		
+		MyWSDelegate(int wspaceId) {
+			_wspaceId = wspaceId;
+		}
+		
+		@Override
+		public int getWorkspaceId() { return _wspaceId; }
+		
 		@Override
 		public void websocketUseDatabaseHandle(HandleCallback<Void> callback) {
 		}

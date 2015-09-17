@@ -43,8 +43,7 @@ public class RCSessionServlet extends WebSocketServlet {
 				}
 				log.info("websocket got user " + user.getLogin());
 				int wspaceId = Integer.parseInt(req.getRequestPath());
-				RCSession session = _sessionCache.sessionForWorkspace(wspaceId, user.getId());
-				RCSessionSocket socket = new RCSessionSocket(req, session, _sessionCache.getObjectMapper(), user);
+				RCSessionSocket socket = _sessionCache.socketForWorkspaceAndUser(req, wspaceId, user);
 				return socket;
 			} catch (IOException ioe) {
 				//don't care, should never happen
