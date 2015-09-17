@@ -29,4 +29,8 @@ public class Rc2DataSourceFactory {
 		return dbi;
 	}
 	
+	public Rc2DAO createDAO() {
+		DBI dbi = createDBI();
+		return new Rc2DAO(dbi);
+	}
 }
