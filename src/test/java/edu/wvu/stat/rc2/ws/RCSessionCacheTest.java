@@ -11,26 +11,23 @@ import static org.junit.Assert.fail;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
 import org.junit.Before;
 import org.junit.Test;
-import org.skife.jdbi.v2.DBI;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
+import edu.wvu.stat.rc2.Rc2CommonMocks;
 import edu.wvu.stat.rc2.persistence.RCUser;
 
 public class RCSessionCacheTest {
 	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
 
-	DBI _dbi;
-	ObjectMapper _mapper;
 	RCUser _user;
+	ObjectMapper _mapper;
 	
 	@Before
 	public void setUp() throws Exception {
-		_dbi = dbfactory.createDBI();
 		_mapper = new ObjectMapper();
-		RCUser.Queries userDao = _dbi.onDemand(RCUser.Queries.class);
-		_user = userDao.findById(1);
+		_user = Rc2CommonMocks.mockTestUser();
 	}
 
 	RCSessionSocket createSocketForWorkspace(int wspaceId) {
