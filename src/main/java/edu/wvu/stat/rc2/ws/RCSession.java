@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
+import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 @SuppressWarnings("unused")
 public final class RCSession implements RCSessionSocket.Delegate {
@@ -26,7 +27,7 @@ public final class RCSession implements RCSessionSocket.Delegate {
 	private RCWorkspace _wspace;
 	private final List<RCSessionSocket> _webSockets;
 	private ObjectMapper _mapper;
-	private DBI _dbi;
+	private Rc2DAO _dao;
 	
 	private final long _startTime;
 	private boolean _watchingVariables;
@@ -41,9 +42,8 @@ public final class RCSession implements RCSessionSocket.Delegate {
 		_mapper = mapper;
 		if (null == _mapper)
 			_mapper = new ObjectMapper();
-		_dbi = _dbfactory.createDBI();
-		RCWorkspaceQueries wsDao = _dbi.onDemand(RCWorkspaceQueries.class);
-		_wspace = wsDao.findById(wspaceId);
+		_dao = _dbfactory.createDAO();
+		_wspace = _dao.findWorkspaceById(wspaceId);
 		if (null == _wspace)
 			throw new IllegalArgumentException("invalid workspaceId");
 		
@@ -104,7 +104,7 @@ public final class RCSession implements RCSessionSocket.Delegate {
 	
 	@Override
 	public void websocketUseDatabaseHandle(HandleCallback<Void> callback) {
-		_dbi.withHandle(callback);
+		_dao.getDBI().withHandle(callback);
 	}
 
 	@Override
