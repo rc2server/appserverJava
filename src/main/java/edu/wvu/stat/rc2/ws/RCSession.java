@@ -52,6 +52,7 @@ public final class RCSession implements RCSessionSocket.Delegate {
 	}
 
 	public int getWorkspaceId() { return _wspace.getId(); }
+	public ObjectMapper getObjectMapper() { return _mapper; }
 	public int getClientCount() {
 		return _webSockets.size();
 	}

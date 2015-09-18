@@ -13,6 +13,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
+/** RCWorkspace is mostly-immutable. All properties are immutable. The only thing that is mutable 
+ 	is the list of files. It is stored internally as an immutable copy of the argument to setFiles().
+ 	So the workspace itself is immutable, but the file list isn't.
+ */
+
 @AutoValue
 @JsonIgnoreProperties(value={"files"}, allowGetters=true)
 public abstract class RCWorkspace {
