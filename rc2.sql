@@ -94,7 +94,23 @@ $$;
 
 ALTER FUNCTION public.update_version_column() OWNER TO rc2;
 
-create sequence crashdata_seq minvalue 1 start 100;
+--
+-- Name: crashdata_seq; Type: SEQUENCE; Schema: public; Owner: rc2
+--
+
+CREATE SEQUENCE crashdata_seq
+    START WITH 100
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE crashdata_seq OWNER TO rc2;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
 
 --
 -- Name: crashdata; Type: TABLE; Schema: public; Owner: rc2; Tablespace: 
@@ -380,63 +396,6 @@ CREATE TABLE rcuser (
 ALTER TABLE rcuser OWNER TO rc2;
 
 --
--- Name: sessionimage_seq; Type: SEQUENCE; Schema: public; Owner: rc2
---
-
-CREATE SEQUENCE sessionimage_seq
-    START WITH 100
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE sessionimage_seq OWNER TO rc2;
-
---
--- Name: sessionimage; Type: TABLE; Schema: public; Owner: rc2; Tablespace: 
---
-
-CREATE TABLE sessionimage (
-    id integer DEFAULT nextval('sessionimage_seq'::regclass) NOT NULL,
-    sessionid integer NOT NULL,
-    name character varying(80) NOT NULL,
-    datecreated timestamp without time zone DEFAULT now() NOT NULL,
-    imgdata bytea
-);
-
-
-ALTER TABLE sessionimage OWNER TO rc2;
-
---
--- Name: sessionrecord_seq; Type: SEQUENCE; Schema: public; Owner: rc2
---
-
-CREATE SEQUENCE sessionrecord_seq
-    START WITH 10
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE sessionrecord_seq OWNER TO rc2;
-
---
--- Name: sessionrecord; Type: TABLE; Schema: public; Owner: rc2; Tablespace: 
---
-
-CREATE TABLE sessionrecord (
-    id integer DEFAULT nextval('sessionrecord_seq'::regclass) NOT NULL,
-    wspaceid integer NOT NULL,
-    startdate timestamp without time zone DEFAULT now() NOT NULL,
-    enddate timestamp without time zone
-);
-
-
-ALTER TABLE sessionrecord OWNER TO rc2;
-
---
 -- Name: rcworkspace_seq; Type: SEQUENCE; Schema: public; Owner: rc2
 --
 
@@ -477,6 +436,64 @@ CREATE TABLE rcworkspacedata (
 
 
 ALTER TABLE rcworkspacedata OWNER TO rc2;
+
+--
+-- Name: sessionimage_seq; Type: SEQUENCE; Schema: public; Owner: rc2
+--
+
+CREATE SEQUENCE sessionimage_seq
+    START WITH 100
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE sessionimage_seq OWNER TO rc2;
+
+--
+-- Name: sessionimage; Type: TABLE; Schema: public; Owner: rc2; Tablespace: 
+--
+
+CREATE TABLE sessionimage (
+    id integer DEFAULT nextval('sessionimage_seq'::regclass) NOT NULL,
+    sessionid integer NOT NULL,
+    batchid integer DEFAULT 0 NOT NULL,
+    name character varying(80) NOT NULL,
+    datecreated timestamp without time zone DEFAULT now() NOT NULL,
+    imgdata bytea
+);
+
+
+ALTER TABLE sessionimage OWNER TO rc2;
+
+--
+-- Name: sessionrecord_seq; Type: SEQUENCE; Schema: public; Owner: rc2
+--
+
+CREATE SEQUENCE sessionrecord_seq
+    START WITH 10
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE sessionrecord_seq OWNER TO rc2;
+
+--
+-- Name: sessionrecord; Type: TABLE; Schema: public; Owner: rc2; Tablespace: 
+--
+
+CREATE TABLE sessionrecord (
+    id integer DEFAULT nextval('sessionrecord_seq'::regclass) NOT NULL,
+    wspaceid integer NOT NULL,
+    startdate timestamp without time zone DEFAULT now() NOT NULL,
+    enddate timestamp without time zone
+);
+
+
+ALTER TABLE sessionrecord OWNER TO rc2;
 
 --
 -- Name: crashdata_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
@@ -583,22 +600,6 @@ ALTER TABLE ONLY rcuser
 
 
 --
--- Name: sessionimage_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
---
-
-ALTER TABLE ONLY sessionimage
-    ADD CONSTRAINT sessionimage_pkey PRIMARY KEY (id);
-
-
---
--- Name: sessionrecord_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
---
-
-ALTER TABLE ONLY sessionrecord
-    ADD CONSTRAINT sessionrecord_pkey PRIMARY KEY (id);
-
-
---
 -- Name: rcworkspace_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
 --
 
@@ -615,6 +616,22 @@ ALTER TABLE ONLY rcworkspacedata
 
 
 --
+-- Name: sessionimage_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
+--
+
+ALTER TABLE ONLY sessionimage
+    ADD CONSTRAINT sessionimage_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sessionrecord_pkey; Type: CONSTRAINT; Schema: public; Owner: rc2; Tablespace: 
+--
+
+ALTER TABLE ONLY sessionrecord
+    ADD CONSTRAINT sessionrecord_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: rcuser_email_idx; Type: INDEX; Schema: public; Owner: rc2; Tablespace: 
 --
 
@@ -626,6 +643,13 @@ CREATE UNIQUE INDEX rcuser_email_idx ON rcuser USING btree (email);
 --
 
 CREATE UNIQUE INDEX rcuser_login_idx ON rcuser USING btree (login);
+
+
+--
+-- Name: sessionimage_sessionrec_idx; Type: INDEX; Schema: public; Owner: rc2; Tablespace: 
+--
+
+CREATE INDEX sessionimage_sessionrec_idx ON sessionimage USING btree (sessionid);
 
 
 --
@@ -712,6 +736,22 @@ ALTER TABLE ONLY rcuser
 
 
 --
+-- Name: rcworkspace_userid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: rc2
+--
+
+ALTER TABLE ONLY rcworkspace
+    ADD CONSTRAINT rcworkspace_userid_fkey FOREIGN KEY (userid) REFERENCES rcuser(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: rcworkspacedata_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: rc2
+--
+
+ALTER TABLE ONLY rcworkspacedata
+    ADD CONSTRAINT rcworkspacedata_id_fkey FOREIGN KEY (id) REFERENCES rcworkspace(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
+
+
+--
 -- Name: sessionimage_sessionrec_fk; Type: FK CONSTRAINT; Schema: public; Owner: rc2
 --
 
@@ -727,23 +767,8 @@ ALTER TABLE ONLY sessionrecord
     ADD CONSTRAINT sessionrecord_wspace_fk FOREIGN KEY (wspaceid) REFERENCES rcworkspace(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
 
 
---
--- Name: rcworkspace_ownerid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: rc2
---
-
-ALTER TABLE ONLY rcworkspace
-    ADD CONSTRAINT rcworkspace_userid_fkey FOREIGN KEY (userid) REFERENCES rcuser(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- Name: rcworkspacedata_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: rc2
---
-
-ALTER TABLE ONLY rcworkspacedata
-    ADD CONSTRAINT rcworkspacedata_id_fkey FOREIGN KEY (id) REFERENCES rcworkspace(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
-
-
 
 --
 -- PostgreSQL database dump complete
 --
+
