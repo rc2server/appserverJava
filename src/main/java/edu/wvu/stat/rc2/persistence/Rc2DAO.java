@@ -4,12 +4,22 @@ import org.skife.jdbi.v2.DBI;
 
 public class Rc2DAO {
 	private final DBI _dbi;
+	private final String _dbHost;
+	private final String _dbUser;
+	private final String _dbDatabase;
 	private volatile RCUser.Queries _userDao;
 	private volatile RCWorkspaceQueries _wsDao;
 	
-	Rc2DAO(DBI dbi) {
+	Rc2DAO(DBI dbi, String host, String user, String database) {
 		_dbi = dbi;
+		_dbHost = host;
+		_dbUser = user;
+		_dbDatabase = database;
 	}
+	
+	public String getDBHost() { return _dbHost; }
+	public String getDBUser() { return _dbUser; }
+	public String getDBDatabase() { return _dbDatabase; }
 	
 	public RCUser findUserById(int userId) {
 		return getUserDao().findById(userId);

@@ -14,9 +14,9 @@ public class Rc2DataSourceFactory {
 	public Rc2DataSourceFactory() {
 		PGDataSource pgds=null;
 		pgds = new PGDataSource();
-		pgds.setUser("rc2");
-		pgds.setDatabase("rc2test");
-		pgds.setHost("localhost");
+		pgds.setUser(getDBUser());
+		pgds.setDatabase(getDBDatabase());
+		pgds.setHost(getDBHost());
 		_ds = pgds;
 		if (_ds instanceof PGDataSource)
 			pgds = (PGDataSource)_ds;
@@ -31,6 +31,10 @@ public class Rc2DataSourceFactory {
 	
 	public Rc2DAO createDAO() {
 		DBI dbi = createDBI();
-		return new Rc2DAO(dbi);
+		return new Rc2DAO(dbi, getDBHost(), getDBUser(), getDBDatabase());
 	}
+	
+	public String getDBHost() { return "localhost"; }
+	public String getDBUser() { return "rc2"; }
+	public String getDBDatabase() { return "rc2test"; }
 }
