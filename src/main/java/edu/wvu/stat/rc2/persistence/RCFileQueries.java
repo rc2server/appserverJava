@@ -18,10 +18,9 @@ import org.slf4j.LoggerFactory;
 
 import edu.wvu.stat.rc2.jdbi.BindFile;
 import edu.wvu.stat.rc2.persistence.RCFile.RCFileMapper;
-import edu.wvu.stat.rc2.resources.LoginResource;
 
 public abstract class RCFileQueries {
-	final static Logger log = LoggerFactory.getLogger(LoginResource.class);
+	final static Logger log = LoggerFactory.getLogger("rc2.RCFileQueries");
 
 	@SqlQuery("select * from rcfile where id = :id")
 	@Mapper(RCFileMapper.class)

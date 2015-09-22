@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import edu.wvu.stat.rc2.persistence.RCUser;
 
 public final class RCSessionSocket {
-	static final Logger log = LoggerFactory.getLogger("edu.wvu.stat.rc2.ws.RCSessionSocket");
+	static final Logger log = LoggerFactory.getLogger("rc2.RCSessionSocket");
 	private static final AtomicInteger sNextId = new AtomicInteger(0);
 
 	private Session _outbound;

@@ -17,7 +17,7 @@ import java.io.IOException;
 
 public class RCSessionServlet extends WebSocketServlet {
 	private static final long serialVersionUID = 1L;
-	static final Logger log = LoggerFactory.getLogger("RCSessionServlet");
+	static final Logger log = LoggerFactory.getLogger("rc2.RCSessionServlet");
 
 	private final RCSessionCache _sessionCache;
 	

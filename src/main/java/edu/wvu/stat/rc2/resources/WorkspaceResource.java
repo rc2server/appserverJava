@@ -41,7 +41,7 @@ import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 @Path("/workspaces")
 @Produces(MediaType.APPLICATION_JSON)
 public class WorkspaceResource extends BaseResource {
-	final static Logger log= LoggerFactory.getLogger(WorkspaceResource.class);
+	final static Logger log= LoggerFactory.getLogger("rc2.WorkspaceResource");
 	
 	public WorkspaceResource() {
 		super();

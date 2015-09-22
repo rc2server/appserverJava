@@ -21,7 +21,7 @@ import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 @SuppressWarnings("unused")
 public final class RCSession implements RCSessionSocket.Delegate {
-	static final Logger log = LoggerFactory.getLogger("RCSession");
+	static final Logger log = LoggerFactory.getLogger("rc2.RCSession");
 
 	private final Rc2DataSourceFactory _dbfactory;
 	private RCWorkspace _wspace;

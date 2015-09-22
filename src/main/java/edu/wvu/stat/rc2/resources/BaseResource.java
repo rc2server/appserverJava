@@ -23,7 +23,7 @@ import edu.wvu.stat.rc2.rs.Rc2DBInject;
 import static edu.wvu.stat.rc2.Rc2AppConfiguration.*;
 
 public abstract class BaseResource {
-	final static Logger log= LoggerFactory.getLogger(BaseResource.class);
+	final static Logger log= LoggerFactory.getLogger("rc2.BaseResource");
 	
 	@Context  HttpServletRequest _servletRequest;
 	@Rc2DBInject DBI _dbi;

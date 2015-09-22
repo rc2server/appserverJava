@@ -35,7 +35,7 @@ import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 @Produces(MediaType.APPLICATION_JSON)
 public class LoginResource extends BaseResource {
 
-	final static Logger log= LoggerFactory.getLogger(LoginResource.class);
+	final static Logger log= LoggerFactory.getLogger("rc2.LoginResource");
 	private static final SecureRandom random = new SecureRandom();
 	
 	public LoginResource() {

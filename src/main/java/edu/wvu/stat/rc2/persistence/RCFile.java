@@ -13,11 +13,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
-import edu.wvu.stat.rc2.resources.LoginResource;
-
 @AutoValue
 public abstract class RCFile {
-	final static Logger log = LoggerFactory.getLogger(LoginResource.class);
+	final static Logger log = LoggerFactory.getLogger("rc2.RCFile");
 
 	@JsonCreator
 	public static RCFile create(@JsonProperty("id") int id,
