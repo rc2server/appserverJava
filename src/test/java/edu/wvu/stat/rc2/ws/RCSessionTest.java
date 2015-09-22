@@ -16,8 +16,10 @@ import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.skife.jdbi.v2.DBI;
 
 import edu.wvu.stat.rc2.Rc2CommonMocks;
+import edu.wvu.stat.rc2.persistence.RCSessionRecord;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
@@ -35,6 +37,12 @@ public class RCSessionTest {
 		_wspace = Rc2CommonMocks.mockWorkspace();
 		when(_dbfactory.createDAO()).thenReturn(_dao);
 		when(_dao.findWorkspaceById(1)).thenReturn(_wspace);
+		RCSessionRecord.Queries srecDao = mock(RCSessionRecord.Queries.class);
+		when(srecDao.createSessionRecord(1)).thenReturn(1);
+		when(srecDao.closeSessionRecord(1)).thenReturn(1);
+		DBI sessionDbi = mock(DBI.class);
+		when(sessionDbi.onDemand(RCSessionRecord.Queries.class)).thenReturn(srecDao);
+		when(_dao.getDBI()).thenReturn(sessionDbi);
 }
 
 	@Test
@@ -43,7 +51,7 @@ public class RCSessionTest {
 			new RCSession(_dbfactory, null, 10111131);
 			fail("failed to throw illegalArgumentException");
 		} catch (IllegalArgumentException e) {
-			//what we exepcted
+			//what we expected
 		}
 	}
 

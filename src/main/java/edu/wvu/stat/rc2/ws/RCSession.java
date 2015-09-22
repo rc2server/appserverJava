@@ -15,6 +15,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
+import edu.wvu.stat.rc2.persistence.RCSessionRecord;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
@@ -30,6 +31,7 @@ public final class RCSession implements RCSessionSocket.Delegate {
 	private Rc2DAO _dao;
 	
 	private final long _startTime;
+	private final int _sessionId;
 	private boolean _watchingVariables;
 	
 	/**
@@ -49,9 +51,13 @@ public final class RCSession implements RCSessionSocket.Delegate {
 		
 		_webSockets = new ArrayList<RCSessionSocket>();
 		_startTime = System.currentTimeMillis();
+		
+		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
+		_sessionId = srecDao.createSessionRecord(_wspace.getId());
 	}
 
 	public int getWorkspaceId() { return _wspace.getId(); }
+	public int getSessionRecordId() { return _sessionId; }
 	public ObjectMapper getObjectMapper() { return _mapper; }
 	public int getClientCount() {
 		return _webSockets.size();
@@ -60,7 +66,8 @@ public final class RCSession implements RCSessionSocket.Delegate {
 	
 	
 	void shutdown() {
-		
+		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
+		srecDao.closeSessionRecord(_sessionId);
 	}
 	
 	private void handleExecuteScript(Map<String,Object> cmdObj, RCSessionSocket socket) {
