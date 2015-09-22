@@ -22,7 +22,7 @@ public abstract class RCSessionRecord {
 	@JsonCreator
 	public static RCSessionRecord create(
 			@JsonProperty("id") int id, 
-			@JsonProperty("workspaceeId") int wspaceId, 
+			@JsonProperty("workspaceId") int wspaceId, 
 			@JsonProperty("startDate") Date startDate, 
 			@JsonProperty("endDate") Date endDate) 
 	{

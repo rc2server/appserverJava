@@ -116,6 +116,7 @@ public class ServerMessageResolverTest {
 		jsonObj.put("images", imageIds);
 		jsonObj.put("filesModified", modified);
 		jsonObj.put("filesDeleted", deleted);
+		jsonObj.put("imgBatch", 11);
 		final String json = _mapper.writeValueAsString(jsonObj);
 		BaseMessage baseMsg = _mapper.readValue(json, BaseMessage.class);
 		assertThat(baseMsg, instanceOf(ExecCompleteMessage.class));
@@ -126,6 +127,7 @@ public class ServerMessageResolverTest {
 		assertThat(execMsg.getImageIds(), is(imageIds));
 		assertThat(execMsg.getFilesModified(), is(modified));
 		assertThat(execMsg.getFilesDeleted(), is(deleted));
+		assertThat(execMsg.getImageBatchId(), is(11));
 	}
 	
 	@Test

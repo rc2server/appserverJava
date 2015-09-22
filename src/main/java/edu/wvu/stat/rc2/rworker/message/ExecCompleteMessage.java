@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ExecCompleteMessage extends BaseMessage {
 	private final long _startTime;
 	private final Map<String,Object> _clientData;
+	private final int _imgBatchId;
 	private final List<Integer> _imageIds;
 	private final List<String> _filesModified;
 	private final List<String> _filesDeleted;
@@ -20,7 +21,8 @@ public class ExecCompleteMessage extends BaseMessage {
 			@JsonProperty("clientData") Map<String,Object> clientData,
 			@JsonProperty("filesModified") List<String> modFiles,
 			@JsonProperty("filesDeleted") List<String> delFiles,
-			@JsonProperty("images") List<Integer> imageIds
+			@JsonProperty("images") List<Integer> imageIds,
+			@JsonProperty("imgBatch") int imgBatchId
 			) 
 	{
 		super(msg);
@@ -29,6 +31,7 @@ public class ExecCompleteMessage extends BaseMessage {
 		_imageIds = imageIds;
 		_filesModified = modFiles;
 		_filesDeleted = delFiles;
+		_imgBatchId = imgBatchId;
 	}
 	
 	public long getStartTime() { return _startTime; }
@@ -36,5 +39,6 @@ public class ExecCompleteMessage extends BaseMessage {
 	public List<Integer> getImageIds() { return _imageIds; }
 	public List<String> getFilesModified() { return _filesModified; }
 	public List<String> getFilesDeleted() { return _filesDeleted; }
+	public int getImageBatchId() { return _imgBatchId; }
 }
 
