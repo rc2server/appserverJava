@@ -1,5 +1,7 @@
 package edu.wvu.stat.rc2.persistence;
 
+import java.util.List;
+
 import org.skife.jdbi.v2.DBI;
 
 public class Rc2DAO {
@@ -9,6 +11,7 @@ public class Rc2DAO {
 	private final String _dbDatabase;
 	private volatile RCUser.Queries _userDao;
 	private volatile RCWorkspaceQueries _wsDao;
+	private volatile RCSessionImage.Queries _imgDao;
 	
 	Rc2DAO(DBI dbi, String host, String user, String database) {
 		_dbi = dbi;
@@ -27,6 +30,23 @@ public class Rc2DAO {
 	
 	public RCWorkspace findWorkspaceById(int wsid) {
 		return getWorkspaceDao().findById(wsid);
+	}
+	
+	public List<RCSessionImage> findImageBatchById(int batchId) {
+		return getSessionImageDao().findByBatchId(batchId);
+	}
+	
+	//uses double check idiom for fast performance (25x over synchronized)
+	public RCSessionImage.Queries getSessionImageDao() {
+		RCSessionImage.Queries result = _imgDao;
+		if (null == result) {
+			synchronized(this) {
+				result = _imgDao;
+				if (result == null)
+					_imgDao = result = _dbi.onDemand(RCSessionImage.Queries.class);
+			}
+		}
+		return result;
 	}
 	
 	//uses double check idiom for fast performance (25x over synchronized)
