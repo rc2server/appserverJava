@@ -52,6 +52,12 @@ The RCSessionManager is a singleton that caches open sessions. It runs a cleanup
 
 An instance of RCSession is opened for each workspace currently being used. Multiple websockets can connect to a single session. 
 
+## WebSockets
+
+Text messages are json messages described elsewhere.
+
+Binary messages consist of a version byte (currently 1), followed by a message type byte (1 for image). Remaining data is payload for message type. For images, it is a 32 bit integer with the imageId. Metadata will have previously been sent via json.
+
 ## Style conventions
 
 * Tabs, not spaces.
