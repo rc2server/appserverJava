@@ -32,10 +32,8 @@ public class ServerMessageResolverTest {
 
 	@Test
 	public void testHelp() throws Exception {
-		long startTime = System.currentTimeMillis()-1200;
 		HashMap<String,Object> jsonObj = new HashMap<String,Object>();
 		jsonObj.put("msg", "help");
-		jsonObj.put("startTime", startTime);
 		jsonObj.put("helpTopic", "print");
 		jsonObj.put("helpPath", Arrays.asList("path1","path2"));
 		final String json = _mapper.writeValueAsString(jsonObj);
@@ -43,7 +41,6 @@ public class ServerMessageResolverTest {
 		assertThat(baseMsg, instanceOf(HelpMessage.class));
 		HelpMessage msg = (HelpMessage)baseMsg;
 		assertThat(msg.getTopic(), is("print"));
-		assertThat(msg.getStartTime(), is(startTime));
 		List<String> paths = msg.getPaths();
 		assertThat(paths.size(), is(2));
 		assertThat(paths.get(0), is("path1"));
