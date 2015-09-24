@@ -197,7 +197,8 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleHelpMessage(HelpMessage msg) {
-		
+		HelpResponse rsp = new HelpResponse(msg.getTopic(), msg.getPaths());
+		getDelegate().broadcastToAllClients(rsp);
 	}
 
 	@SuppressWarnings("unused") //dynamically called
