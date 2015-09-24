@@ -103,15 +103,11 @@ public class ServerMessageResolverTest {
 	@Test
 	public void testExecComplete() throws Exception {
 		List<Integer> imageIds = Arrays.asList(2,3,4);
-		List<String> deleted = Arrays.asList("foo.txt","bar.txt");
-		List<String> modified = Arrays.asList("one.R");
 		long startTime = System.currentTimeMillis()-1200;
 		HashMap<String,Object> jsonObj = new HashMap<String,Object>();
 		jsonObj.put("msg", "execComplete");
 		jsonObj.put("startTime", Long.toString(startTime));
 		jsonObj.put("images", imageIds);
-		jsonObj.put("filesModified", modified);
-		jsonObj.put("filesDeleted", deleted);
 		jsonObj.put("imgBatch", 11);
 		final String json = _mapper.writeValueAsString(jsonObj);
 		BaseMessage baseMsg = _mapper.readValue(json, BaseMessage.class);
@@ -119,8 +115,6 @@ public class ServerMessageResolverTest {
 		ExecCompleteMessage execMsg = (ExecCompleteMessage)baseMsg;
 		assertThat(execMsg.getStartTime(), is(startTime));
 		assertThat(execMsg.getImageIds(), is(imageIds));
-		assertThat(execMsg.getFilesModified(), is(modified));
-		assertThat(execMsg.getFilesDeleted(), is(deleted));
 		assertThat(execMsg.getImageBatchId(), is(11));
 	}
 	
