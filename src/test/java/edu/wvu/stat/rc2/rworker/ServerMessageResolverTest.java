@@ -4,7 +4,6 @@ import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 //import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -31,29 +30,6 @@ public class ServerMessageResolverTest {
 		_mapper = new ObjectMapper();
 	}
 
-	@Test
-	public void testMessageDispatch() throws Exception {
-		final String errJson = "{\"msg\":\"error\", \"errorCode\":100,\"errorDetails\":\"test\"}";
-		final String showMsgJson = "{\"msg\":\"showoutput\",\"fileId\":11}";
-		
-		BaseMessage errObj = _mapper.readValue(errJson, BaseMessage.class);
-		BaseMessage showObj = _mapper.readValue(showMsgJson, BaseMessage.class);
-		assertThat(dispatchMessage(errObj), is("test"));
-		assertThat(dispatchMessage(showObj), is("11"));
-	}
-	
-	public Object dispatchMessage(BaseMessage msg) {
-		return "base";
-	}
-	
-	private String dispatchMessage(ErrorMessage msg) {
-		return msg.getDetails();
-	}
-	
-	private String dispatchMessage(ShowOutputMessage msg) {
-		return Integer.toString(msg.getFileId());
-	}
-	
 	@Test
 	public void testHelp() throws Exception {
 		long startTime = System.currentTimeMillis()-1200;
