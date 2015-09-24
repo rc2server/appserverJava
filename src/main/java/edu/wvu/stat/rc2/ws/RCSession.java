@@ -20,6 +20,10 @@ import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
+//TODO: add shutdown hook for rworker
+//		Runtime.getRuntime().addShutdownHook(new Thread(() -> _rworker.shutdown()));
+
+
 @SuppressWarnings("unused")
 public final class RCSession implements RCSessionSocket.Delegate {
 	static final Logger log = LoggerFactory.getLogger("rc2.RCSession");

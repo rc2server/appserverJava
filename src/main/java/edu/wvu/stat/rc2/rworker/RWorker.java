@@ -3,6 +3,7 @@ package edu.wvu.stat.rc2.rworker;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -16,10 +17,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonGenerationException;
 
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
+import edu.wvu.stat.rc2.rworker.message.*;
+import edu.wvu.stat.rc2.ws.resposne.*;
 
 public class RWorker implements Runnable {
 	static final Logger log = LoggerFactory.getLogger("rc2.RWorker");
@@ -36,16 +39,17 @@ public class RWorker implements Runnable {
 	final ArrayBlockingQueue<Map<String, Object>> _outputQueue;
 
 	public RWorker(SocketFactory socketFactory, Delegate delegate) {
+		//create a default socket factory if one was not passed to us
+		if (null == socketFactory) {
+			try { 
+				socketFactory = new SocketFactory(); 
+			} catch (Exception e) { 
+				log.error("failed to create default socket factory", e);
+			}
+		}
 		_socketFactory = socketFactory;
 		_delegate = delegate;
 		_outputQueue = new ArrayBlockingQueue<Map<String, Object>>(OUT_QUEUE_SIZE);
-
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				shutdown();
-			}
-		});
 }
 	
 	public Delegate getDelegate() { return _delegate; }
@@ -61,7 +65,7 @@ public class RWorker implements Runnable {
 		_outputQueue.add(cmd);
 	}
 
-	public String serializeJson(Map<String,Object> jo) throws JsonGenerationException, IOException {
+	public String serializeJson(Map<String,Object> jo) throws Exception {
 		if (_delegate != null)
 			return _delegate.getObjectMapper().writeValueAsString(jo);
 		return null;
@@ -161,10 +165,53 @@ public class RWorker implements Runnable {
 		
 	}
 	
-	private void handleJsonResponse(String jsonString) {
-		
+	void handleJsonResponse(String jsonString) {
+		try {
+			BaseMessage bm = _delegate.getObjectMapper().readValue(jsonString, BaseMessage.class);
+			final String methodName = "handle" + bm.getClass().getSimpleName();
+			Method m = getClass().getDeclaredMethod(methodName, bm.getClass());
+			m.invoke(this, bm);
+		} catch (Exception e) {
+			log.error("error handlingjson response:" + jsonString, e);
+		}
 	}
 	
+	@SuppressWarnings("unused") //dynamically called
+	private void handleErrorMessage(ErrorMessage msg) {
+		ErrorResponse  rsp = new ErrorResponse(msg.getDetails());
+		getDelegate().broadcastToAllClients(rsp);
+	}
+
+	@SuppressWarnings("unused") //dynamically called
+	private void handleExecCompleteMessage(ExecCompleteMessage msg) {
+		
+	}
+
+	@SuppressWarnings("unused") //dynamically called
+	private void handleHelpMessage(HelpMessage msg) {
+		
+	}
+
+	@SuppressWarnings("unused") //dynamically called
+	private void handleResultsMessage(ResultsMessage msg) {
+		
+	}
+
+	@SuppressWarnings("unused") //dynamically called
+	private void handleShowOutputMessage(ShowOutputMessage msg) {
+		
+	}
+
+	@SuppressWarnings("unused") //dynamically called
+	private void handleVariableUpdateMessage(VariableUpdateMessage msg) {
+		
+	}
+
+	@SuppressWarnings("unused") //dynamically called
+	private void handleVariableValueMessage(VariableValueMessage msg) {
+		
+	}
+
 	@Override
 	public void run() {
 		_shouldBeRunning = true;
@@ -207,8 +254,7 @@ public class RWorker implements Runnable {
 		public ObjectMapper getObjectMapper();
 		public Rc2DAO getDAO();
 
-		public void broadcastToAllClients(Map<String,Object> json);
-		public void sendVariableValueToClient(Map<String,Object> json);
+		public void broadcastToAllClients(BaseResponse response);
 
 		public void clientHadError(Exception e);
 		public void connectionFailed(Exception e);
