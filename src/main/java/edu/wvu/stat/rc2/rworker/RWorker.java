@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.wvu.stat.rc2.persistence.RCSessionImage;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 import edu.wvu.stat.rc2.rworker.message.*;
 import edu.wvu.stat.rc2.ws.resposne.*;
@@ -172,7 +174,7 @@ public class RWorker implements Runnable {
 			Method m = getClass().getDeclaredMethod(methodName, bm.getClass());
 			m.invoke(this, bm);
 		} catch (Exception e) {
-			log.error("error handlingjson response:" + jsonString, e);
+			log.error("error handling json response:" + jsonString, e);
 		}
 	}
 	
@@ -184,7 +186,13 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleExecCompleteMessage(ExecCompleteMessage msg) {
-		
+		int batchId = msg.getImageBatchId();
+		List<RCSessionImage> images=null;
+		if (batchId > 0) {
+			images = getDelegate().getDAO().findImageBatchById(batchId);
+		}
+		ExecCompleteResponse rsp = new ExecCompleteResponse(batchId , images);
+		getDelegate().broadcastToAllClients(rsp);
 	}
 
 	@SuppressWarnings("unused") //dynamically called

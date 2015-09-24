@@ -102,17 +102,13 @@ public class ServerMessageResolverTest {
 
 	@Test
 	public void testExecComplete() throws Exception {
-		HashMap<String,Object> clientData = new HashMap<String,Object>();
-		clientData.put("foo", "bar");
-		clientData.put("id", 1);
 		List<Integer> imageIds = Arrays.asList(2,3,4);
 		List<String> deleted = Arrays.asList("foo.txt","bar.txt");
 		List<String> modified = Arrays.asList("one.R");
 		long startTime = System.currentTimeMillis()-1200;
 		HashMap<String,Object> jsonObj = new HashMap<String,Object>();
 		jsonObj.put("msg", "execComplete");
-		jsonObj.put("startTime", startTime);
-		jsonObj.put("clientData", clientData);
+		jsonObj.put("startTime", Long.toString(startTime));
 		jsonObj.put("images", imageIds);
 		jsonObj.put("filesModified", modified);
 		jsonObj.put("filesDeleted", deleted);
@@ -122,8 +118,6 @@ public class ServerMessageResolverTest {
 		assertThat(baseMsg, instanceOf(ExecCompleteMessage.class));
 		ExecCompleteMessage execMsg = (ExecCompleteMessage)baseMsg;
 		assertThat(execMsg.getStartTime(), is(startTime));
-		assertThat(execMsg.getClientData().get("id"), is(clientData.get("id")));
-		assertThat(execMsg.getClientData().get("foo"), is(clientData.get("foo")));
 		assertThat(execMsg.getImageIds(), is(imageIds));
 		assertThat(execMsg.getFilesModified(), is(modified));
 		assertThat(execMsg.getFilesDeleted(), is(deleted));

@@ -9,6 +9,26 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import edu.wvu.stat.rc2.rworker.message.BaseMessage;
 
 public class ServerMessageResolver extends TypeIdResolverBase {
+	public enum Messages {
+		EXEC_COMPLETE_MSG ("execComplete"),
+		RESULTS_MSG ("results"),
+		ERROR_MSG  ("error"),
+		SHOW_OUTPUT_MSG ("showoutput"),
+		VAR_UPDATE_MSG ("variableupdate"),
+		VAR_VALUE_MSG ("variablevalue"),
+		HELP_MSG ("help");
+		
+		public final String jsonValue;
+		private Messages(String s) { jsonValue = s; }
+		public static Messages valueWithJsonValue(String aValue) {
+			for (Messages msg : Messages.values()) {
+				if (msg.jsonValue.equals(aValue))
+					return msg;
+			}
+			return null;
+		}
+	}
+	
 	public final String MESSAGE_PREFIX = "edu.wvu.stat.rc2.rworker.message";
 	
 	@Override
@@ -20,7 +40,7 @@ public class ServerMessageResolver extends TypeIdResolverBase {
 	public String idFromValue(Object obj) {
 		return idFromValueAndType(obj, obj.getClass());
 	}
-
+ 
 	@Override
 	public String idFromValueAndType(Object obj, Class<?> clazz) {
 		String name = clazz.getName();
@@ -35,26 +55,26 @@ public class ServerMessageResolver extends TypeIdResolverBase {
 		JavaType baseType = null;
 		//following is not used, not sure why
 		String typeClass=null;
-		switch(type) {
-			case "results":
+		switch(Messages.valueWithJsonValue(type)) {
+			case RESULTS_MSG:
 				typeClass = "ResultsMessage";
 				break;
-			case "error":
+			case ERROR_MSG:
 				typeClass = "ErrorMessage";
 				break;
-			case "showoutput":
+			case SHOW_OUTPUT_MSG:
 				typeClass = "ShowOutputMessage";
 				break;
-			case "execComplete":
+			case EXEC_COMPLETE_MSG:
 				typeClass = "ExecCompleteMessage";
 				break;
-			case "variableupdate":
+			case VAR_UPDATE_MSG:
 				typeClass = "VariableUpdateMessage";
 				break;
-			case "variablevalue":
+			case VAR_VALUE_MSG:
 				typeClass = "VariableValueMessage";
 				break;
-			case "help":
+			case HELP_MSG:
 				typeClass = "HelpMessage";
 				break;
 			default:
