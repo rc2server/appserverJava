@@ -203,12 +203,12 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleResultsMessage(ResultsMessage msg) {
-		
+		getDelegate().broadcastToAllClients(new ResultsResponse(msg.getString(), 0));
 	}
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleShowOutputMessage(ShowOutputMessage msg) {
-		
+		getDelegate().broadcastToAllClients(new ResultsResponse("", msg.getFileId()));
 	}
 
 	@SuppressWarnings("unused") //dynamically called

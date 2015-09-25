@@ -18,6 +18,7 @@ import edu.wvu.stat.rc2.rworker.ServerMessageResolver.Messages;
 import edu.wvu.stat.rc2.ws.resposne.ErrorResponse;
 import edu.wvu.stat.rc2.ws.resposne.ExecCompleteResponse;
 import edu.wvu.stat.rc2.ws.resposne.HelpResponse;
+import edu.wvu.stat.rc2.ws.resposne.ResultsResponse;
 
 public class RWorkerMessageHandlingTest {
 	private TestDelegate delegate;
@@ -29,6 +30,26 @@ public class RWorkerMessageHandlingTest {
 		this.worker = new RWorker(null, this.delegate);
 	}
 
+	@Test
+	public void testShowOutputMessage() {
+		final String json = "{\"msg\":\"" + Messages.SHOW_OUTPUT_MSG.jsonValue + "\", \"fileId\":11}";
+		worker.handleJsonResponse(json);
+		assertThat(delegate.messagesBroadcast.size(), is(1));
+		assertThat(delegate.messagesBroadcast.get(0), instanceOf(ResultsResponse.class));
+		ResultsResponse msg = (ResultsResponse)delegate.messagesBroadcast.get(0);
+		assertThat(msg.getFileId(), is(11));
+	}
+
+	@Test
+	public void testResultsMessage() {
+		final String json = "{\"msg\":\"" + Messages.RESULTS_MSG.jsonValue + "\", \"string\":\"foobar\"}";
+		worker.handleJsonResponse(json);
+		assertThat(delegate.messagesBroadcast.size(), is(1));
+		assertThat(delegate.messagesBroadcast.get(0), instanceOf(ResultsResponse.class));
+		ResultsResponse msg = (ResultsResponse)delegate.messagesBroadcast.get(0);
+		assertThat(msg.getString(), is("foobar"));
+	}
+	
 	@Test
 	public void testErrorMessage() {
 		final String errJson = "{\"msg\":\"error\", \"errorDetails\":\"test error\", \"errorCode\":101}";
