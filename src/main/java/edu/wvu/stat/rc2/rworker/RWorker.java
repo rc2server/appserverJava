@@ -213,12 +213,18 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleVariableUpdateMessage(VariableUpdateMessage msg) {
-		
+		VariableResponse rsp = new VariableResponse(msg.getVariables(), msg.getUserIdentifier(), msg.isDelta(), false);
+		getDelegate().broadcastToAllClients(rsp);
 	}
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleVariableValueMessage(VariableValueMessage msg) {
-		
+		VariableResponse rsp = new VariableResponse(msg.getValue(), msg.getUserIdentifier(), false, 
+				msg.getUserIdentifier() > 0);
+		if (rsp.isSingleValue())
+			getDelegate().broadcastToSingleClient(rsp, rsp.getSocketId());
+		else
+			getDelegate().broadcastToAllClients(rsp);
 	}
 
 	@Override
@@ -264,6 +270,7 @@ public class RWorker implements Runnable {
 		public Rc2DAO getDAO();
 
 		public void broadcastToAllClients(BaseResponse response);
+		public void broadcastToSingleClient(BaseResponse response, int socketId);
 
 		public void clientHadError(Exception e);
 		public void connectionFailed(Exception e);

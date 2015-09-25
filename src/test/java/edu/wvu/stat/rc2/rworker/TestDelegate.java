@@ -2,6 +2,7 @@ package edu.wvu.stat.rc2.rworker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,9 +13,11 @@ import edu.wvu.stat.rc2.ws.resposne.BaseResponse;
 public class TestDelegate implements RWorker.Delegate {
 	int workspaceId;
 	int sessionRecordId;
+	int socketId;
 	ObjectMapper mapper;
 	Rc2DAO dao;
 	Consumer<BaseResponse> broadcastLambda;
+	BiConsumer<BaseResponse, Integer> singleBroadcastLambda;
 	Consumer<Exception> connFailedLambda;
 	Consumer<Exception> clientErrorLambda;
 	final List<BaseResponse> messagesBroadcast;
@@ -66,6 +69,17 @@ public class TestDelegate implements RWorker.Delegate {
 	public void connectionFailed(Exception e) {
 		if (null != this.connFailedLambda)
 			this.connFailedLambda.accept(e);
+	}
+
+	@Override
+	public void broadcastToSingleClient(BaseResponse response, int destSocketId) {
+		if (socketId > 0 && socketId == destSocketId) {
+			if (null != this.singleBroadcastLambda) {
+				this.singleBroadcastLambda.accept(response, socketId);
+			} else {
+				this.messagesBroadcast.add(response);
+			}
+		}
 	}
 
 }

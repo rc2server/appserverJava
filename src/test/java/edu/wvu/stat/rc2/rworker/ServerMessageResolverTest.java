@@ -80,19 +80,16 @@ public class ServerMessageResolverTest {
 	
 	@Test
 	public void testVariableValue() throws Exception {
-		long startTime = System.currentTimeMillis()-1200;
 		HashMap<String,Object> val = new HashMap<String,Object>();
 		val.put("type", "integer");
 		val.put("value", 12);
 		HashMap<String,Object> jsonObj = new HashMap<String,Object>();
 		jsonObj.put("msg", "variablevalue");
-		jsonObj.put("startTime", startTime);
 		jsonObj.put("value", val);
 		final String json = _mapper.writeValueAsString(jsonObj);
 		BaseMessage baseMsg = _mapper.readValue(json, BaseMessage.class);
 		assertThat(baseMsg, instanceOf(VariableValueMessage.class));
 		VariableValueMessage vvMsg = (VariableValueMessage)baseMsg;
-		assertThat(vvMsg.getStartTime(), is(startTime));
 		assertThat(vvMsg.getValue().get("type"), is("integer"));
 		assertThat(vvMsg.getValue().get("value"), is(12));
 	}
