@@ -49,7 +49,7 @@ public class RCSessionSocketTest {
 		assertThat(socket.getUserId(), is(1));
 		assertThat(socket.getDisplayName(), is("beavis"));
 		assertThat(socket.getSocketId(), is(greaterThanOrEqualTo(0)));
-		assertThat(socket.getConnectTime(), lessThan(System.currentTimeMillis()));
+		assertThat(socket.getConnectTime(), lessThan(System.currentTimeMillis()+1L));
 
 		org.eclipse.jetty.websocket.api.Session mockSession = mock(org.eclipse.jetty.websocket.api.Session.class);
 		RemoteEndpoint endMock = spy(RemoteEndpoint.class);
