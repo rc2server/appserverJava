@@ -1,6 +1,5 @@
 package edu.wvu.stat.rc2.resources;
 
-import java.io.InputStream;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -14,15 +13,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
@@ -31,9 +24,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import edu.wvu.stat.rc2.jdbi.TransactionHandleWrapper;
-import edu.wvu.stat.rc2.persistence.RCFile;
-import edu.wvu.stat.rc2.persistence.RCFileQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
@@ -52,67 +42,22 @@ public class WorkspaceResource extends BaseResource {
 		super(dbi, user);
 	}
 
-/*	@Path("{id}/files")
-	public Class<FileResource> fileResource(@PathParam("id") int wspaceId) {
+	@Path("{id}/files")
+	public FileResource fileResource(@PathParam("id") int wspaceId) {
 		log.info(String.format("request for wspace files %d", wspaceId));
-		return FileResource.class;
-	}
-*/	
-	
-	@Path("{id}/files/{fid}")
-	@GET
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	public final Response getFile(@Context Request request, @PathParam("id") int wspaceId, @PathParam("fid") int fileId) {
-		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
-		RCWorkspace wspace = dao.findById(wspaceId);
-		checkWorkspacePermissions(wspace);
-		RCFileQueries fdao = _dbi.onDemand(RCFileQueries.class);
-		RCFile file = fdao.findById(fileId);
-		if (null == file)
-			throw new WebApplicationException(Response.Status.NOT_FOUND);
-		EntityTag etag = new EntityTag(file.getETag());
-		ResponseBuilder builder = request.evaluatePreconditions(etag);
-		if (builder != null)
-			return builder.build();
-		byte[] fileData = fdao.fileDataById(fileId);
-		Response rsp = Response.ok().entity(fileData).tag(etag).lastModified(file.getLastModified()).build();
-		return rsp;
-	}
-	
-	
-	@Path("{id}/files")
-	@GET
-	public List<RCFile> getFiles(@PathParam("id") int wspaceId) {
-		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
-		RCWorkspace wspace = dao.findById(wspaceId);
-		checkWorkspacePermissions(wspace);
-		RCFileQueries fdao = _dbi.onDemand(RCFileQueries.class);
-		return fdao.filesForWorkspaceId(wspaceId);
-	}
-	
-	
-	@Path("{id}/files")
-	@POST
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public Response uploadFile(
-			@PathParam("id") int pathId,
-			@FormDataParam("wspaceId") int wspaceId,
-			@FormDataParam("file") InputStream inStream, 
-			@FormDataParam("file") FormDataContentDisposition fileDetails) 
-	{
-		try (TransactionHandleWrapper trans = new TransactionHandleWrapper(_dbi)) {
-			RCWorkspaceQueries dao = trans.addDao(RCWorkspaceQueries.class);
+		System.err.println(String.format("request for wspace files %d", wspaceId));
+		try {
+			RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
 			RCWorkspace wspace = dao.findById(wspaceId);
 			checkWorkspacePermissions(wspace);
-
-			RCFileQueries fileDao = trans.addDao(RCFileQueries.class);
-			RCFile file = fileDao.createFileWithStream(wspaceId, fileDetails.getFileName(), inStream);
-			if (null == file) //should really be impossible
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-		
-			return Response.status(Response.Status.CREATED).entity(file).build();
+			FileResource rsrc = new FileResource(_dbi, getUser(), wspace);
+			return rsrc;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
 		}
 	}
+	
 	
 	
 	// MARK: actual workspace methods
