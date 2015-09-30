@@ -10,10 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 @AutoValue
+@JsonIgnoreProperties(ignoreUnknown=true)
 public abstract class RCFile {
 	final static Logger log = LoggerFactory.getLogger("rc2.RCFile");
 
