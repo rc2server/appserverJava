@@ -44,8 +44,6 @@ public class WorkspaceResource extends BaseResource {
 
 	@Path("{id}/files")
 	public FileResource fileResource(@PathParam("id") int wspaceId) {
-		log.info(String.format("request for wspace files %d", wspaceId));
-		System.err.println(String.format("request for wspace files %d", wspaceId));
 		try {
 			RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
 			RCWorkspace wspace = dao.findById(wspaceId);

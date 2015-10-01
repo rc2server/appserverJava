@@ -1,6 +1,7 @@
 package edu.wvu.stat.rc2.resources;
 
 import static org.junit.Assert.*;
+
 import static org.hamcrest.Matchers.*;
 
 import javax.ws.rs.client.Entity;
@@ -16,10 +17,11 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
+import org.json.JSONArray;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.skyscreamer.jsonassert.JSONAssert;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.RCIntegrationTest;
@@ -55,8 +57,23 @@ public class FileUploadTest extends JerseyTest {
 	}
 	
 	@Test
-	public void testListFiles() {
-		//TODO: implement
+	public void testListFiles() throws Exception {
+		WebTarget target = this.getClient().target("/workspaces/1/files");
+		Response rsp = target.request()
+				.accept(MediaType.APPLICATION_JSON)
+				.get();
+		assertThat(rsp.getStatusInfo(), is(Response.Status.OK));
+		String json = rsp.readEntity(String.class);
+		
+		JSONArray obj = new JSONArray(json);
+		JSONAssert.assertEquals("{id:1,name:\"sample.R\"}", obj.getJSONObject(0), false);
+		JSONAssert.assertEquals("{id:2,name:\"foo.R\"}]", obj.getJSONObject(1), false);
+		
+		//test getting a file's contents
+		target = this.getClient().target(String.format("/workspaces/1/files/%s", obj.getJSONObject(0).getInt("id")));
+		rsp = target.request().accept(MediaType.APPLICATION_OCTET_STREAM).get();
+		String str = rsp.readEntity(String.class);
+		assertThat(str.length(), is(obj.getJSONObject(0).getInt("fileSize")));
 	}
 	
 	@Test 
@@ -83,7 +100,6 @@ public class FileUploadTest extends JerseyTest {
 		assertThat(rsp.getStatusInfo(), is(Response.Status.CREATED));
 		String json = rsp.readEntity(String.class);
 		ObjectMapper mapper = new ObjectMapper();
-//		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		RCFile file = mapper.readValue(json, RCFile.class);
 		assertThat(file.getName(), is("foo.R"));
 		//delete the file we created
