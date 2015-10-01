@@ -1,5 +1,7 @@
 package edu.wvu.stat.rc2.persistence;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 import javax.sql.DataSource;
@@ -74,10 +76,10 @@ public class Rc2DataSourceFactory {
 	}
 	
 	/**
-		@param channelPattern a regex pattern for what channels to listen for
+		@param channelName the channel to listen to. The name must be alphanumeric only
 		@param listener the listener to be notified. Can use a lambda.
 	 */
-	public void addNotificationListener(String channelPattern, NotificationListener listener) {
+	public void addNotificationListener(String channelName, NotificationListener listener) {
 		if (!listenerConnectionValid()) {
 			try {
 				_listenerConnection = (PGConnection) _ds.getConnection();
@@ -86,10 +88,16 @@ public class Rc2DataSourceFactory {
 				throw new RuntimeException("failed to add listener");
 			}
 		}
-		ListenerProxy proxy = new ListenerProxy(listener, channelPattern);
-		_listenerConnection.addNotificationListener(channelPattern, proxy);
+		ListenerProxy proxy = new ListenerProxy(listener, channelName);
+		_listenerConnection.addNotificationListener(channelName, proxy);
+		try (Statement stmt = _listenerConnection.createStatement()) {
+			stmt.executeUpdate("listen " + channelName);
+		} catch (Exception e) {
+			log.error("failed to setup dbnotification callback", e);
+		}
+		
 		_listeners.add(proxy);
-		log.debug("added notification listener for: " + channelPattern);
+		log.debug("added notification listener for: " + channelName);
 	}
 	
 	/** removes the specified listener 
