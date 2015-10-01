@@ -26,7 +26,7 @@ public class Rc2DataSourceFactory {
 	
 	/** defaults to using test database on localhost */
 	public Rc2DataSourceFactory() {
-		this("localhost", "rc2", "rc2test");
+		this(System.getProperty("rc2.dbhost", "localhost"), "rc2", System.getProperty("rc2.dbname", "rc2test"));
 	}
 	
 	public Rc2DataSourceFactory(String host, String user, String database) {
@@ -34,6 +34,7 @@ public class Rc2DataSourceFactory {
 		_userid = user;
 		_dbname = database;
 		PGDataSource pgds=null;
+		log.info("connecting to " + _host + "/" + _dbname);
 		pgds = new PGDataSource();
 		pgds.setUser(_userid);
 		pgds.setDatabase(_dbname);

@@ -58,6 +58,10 @@ Text messages are json messages described elsewhere.
 
 Binary messages consist of a version byte (currently 1), followed by a message type byte (1 for image). Remaining data is payload for message type. For images, it is a 32 bit integer with the imageId. Metadata will have previously been sent via json.
 
+## Integration Testing
+
+To run w/o unit tests, use `mvn verify -Dskip.utests=true`. That will create and use a clean rc2itest database using rc2.sql and testData.sql. The system property `rc2.dbname` will be set to use the rc2itest database.
+
 ## Style conventions
 
 * Tabs, not spaces.
