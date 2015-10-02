@@ -1,6 +1,5 @@
 package edu.wvu.stat.rc2.persistence;
 
-import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.ArrayList;
 
