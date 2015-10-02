@@ -64,7 +64,7 @@ To run w/o unit tests, use `mvn verify -Dskip.utests=true`. That will create and
 
 ## Style conventions
 
-* Tabs, not spaces.
+* Tabs, not spaces. EditorConfig is setup so you don't have to worry if you use BBEdit or install the [eclipse plugin](https://github.com/ncjones/editorconfig-eclipse).
 
 * class fields are prefixed with an underscore. That way you can tell variables from fields at a glance.
 
