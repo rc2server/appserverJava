@@ -13,6 +13,7 @@ import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.skife.jdbi.v2.DBI;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -48,6 +49,8 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	
 	@Override
 	public void initialize(Bootstrap<Rc2AppConfiguration> bootstrap) {
+		SLF4JBridgeHandler.removeHandlersForRootLogger();
+		SLF4JBridgeHandler.install();
 		bootstrap.addCommand(new HashPasswordCommand());
 		bootstrap.addBundle(new MultiPartBundle());
 	}
@@ -65,7 +68,6 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 			.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, "/*");
 		env.jersey().register(UserResource.class);
 		env.jersey().register(WorkspaceResource.class);
-//		env.jersey().register(FileResource.class);
 		env.jersey().register(LoginResource.class);
 		
 		ServletHolder h = new ServletHolder(new RCSessionServlet(_sessionCache));

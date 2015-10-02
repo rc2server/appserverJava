@@ -18,9 +18,11 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.json.JSONArray;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.skyscreamer.jsonassert.JSONAssert;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -46,6 +48,14 @@ public class FileUploadTest extends JerseyTest {
 		}
 	}
 
+	@BeforeClass
+	public static void initLogger() {
+		if (!SLF4JBridgeHandler.isInstalled()) {
+			SLF4JBridgeHandler.removeHandlersForRootLogger();
+			SLF4JBridgeHandler.install();
+		}
+	}
+	
 	@Override
 	protected Application configure() {
 		return new UploadTestConfig();
