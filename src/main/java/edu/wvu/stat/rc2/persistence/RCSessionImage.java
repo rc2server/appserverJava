@@ -12,10 +12,12 @@ import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 @AutoValue
+@JsonIgnoreProperties(ignoreUnknown=true)
 public abstract class RCSessionImage {
 
 	@JsonCreator
@@ -23,23 +25,25 @@ public abstract class RCSessionImage {
 			@JsonProperty("id") int id, 
 			@JsonProperty("sessionId") int sessionId, 
 			@JsonProperty("batchId") int batchId, 
-			@JsonProperty("nameId") String name, 
+			@JsonProperty("workspaceId") int wspaceId, 
+			@JsonProperty("name") String name, 
 			@JsonProperty("dateCreated") Date dateCreated, 
 			@JsonProperty("imageData") byte[] imgData) 
 	{
-		return new AutoValue_RCSessionImage(id, sessionId, batchId, name, dateCreated, imgData);
+		return new AutoValue_RCSessionImage(id, sessionId, batchId, wspaceId, name, dateCreated, imgData);
 	}
 
 	public abstract @JsonProperty int getId();
 	public abstract @JsonProperty int getSessionId();
 	public abstract @JsonProperty int getBatchId();
+	public abstract @JsonProperty int getWorkspaceId();
 	public abstract @JsonProperty String getName();
 	public abstract @JsonProperty Date getDateCreated();
 	public abstract byte[] getImageData();
 	
 	static RCSessionImage createFromResultSet(ResultSet rs) throws SQLException {
 		return new AutoValue_RCSessionImage(rs.getInt("id"), rs.getInt("sessionid"), rs.getInt("batchid"),
-				rs.getString("name"), rs.getDate("datecreated"), rs.getBytes("imgdata"));
+				rs.getInt("wspaceId"), rs.getString("name"), rs.getDate("datecreated"), rs.getBytes("imgdata"));
 	}
 
 	public static class RCSessionImageMapper implements ResultSetMapper<RCSessionImage> {

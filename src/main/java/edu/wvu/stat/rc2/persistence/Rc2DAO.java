@@ -32,6 +32,10 @@ public class Rc2DAO {
 		return getWorkspaceDao().findById(wsid);
 	}
 	
+	public RCSessionImage findImageById(int batchId) {
+		return getSessionImageDao().findById(batchId);
+	}
+
 	public List<RCSessionImage> findImageBatchById(int batchId) {
 		return getSessionImageDao().findByBatchId(batchId);
 	}

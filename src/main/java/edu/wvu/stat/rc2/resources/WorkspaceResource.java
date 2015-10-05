@@ -1,6 +1,8 @@
 package edu.wvu.stat.rc2.resources;
 
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -23,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import edu.wvu.stat.rc2.persistence.RCSessionImage;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
@@ -52,6 +55,28 @@ public class WorkspaceResource extends BaseResource {
 			e.printStackTrace();
 			throw e;
 		}
+	}
+	
+	// MARK: SessionImage access
+	// TODO: add unit test
+	
+	@Path("{id}/images/{iid}")
+	@GET
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response getImage(@PathParam("id") int wspaceId, @PathParam("iid") int imageId) {
+		RCWorkspace wspace = _dao.findWorkspaceById(wspaceId);
+		checkWorkspacePermissions(wspace);
+		RCSessionImage img = _dao.findImageById(imageId);
+		if (img.getWorkspaceId() != wspaceId) {
+			throw new WebApplicationException(Response.Status.FORBIDDEN);
+		}
+		Response rsp = Response.ok()
+						.entity(img.getImageData())
+						//last mod = today - 7 days
+						.lastModified(new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)))
+						.build();
+		return rsp;
+		
 	}
 	
 	// MARK: actual workspace methods

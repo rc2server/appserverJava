@@ -14,12 +14,12 @@
 
 	* Jersey for REST
 	* Jetty for container
+	* Jackson for JSON
+	* JDBI for database access
 	
 * Uses [pgjdbc-ng](https://github.com/impossibl/pgjdbc-ng) for database drivers. This allows use of database notifications to find out about file changes from the compute engine.
 
-* Database access is generally accessed via JDBI.
-
-* PersistentObject interface exists for model objects. A static inner class should provide json mapping if required. A Queries interface should provide methods to fetch instances via DBI.
+* PersistentObject interface exists for model objects. A static inner class should provide json mapping if required. A Queries interface should provide methods to fetch instances via DBI. Abstract class query interfaces require an external source file.
 
 * A jersey filter provides authentication and authorization.
 
@@ -45,6 +45,23 @@
 ## Password hashing
 
 To get a hashed password to insert in the database, use `mvn exec:java -Dexec.mainClass="edu.wvu.stat.rc2.Rc2Application" -Dexec.args="hashpw"`
+
+## Authentication/Authorization
+
+Only these URLs are allowed without authentication
+
+* POST to /login
+* /robots.txt sends a file that disallows all URLs
+
+All other requests must include an **Rc2-Auth** header with a 3 part token. If that header is not found, it also looks for the  token in the **Sec-WebSocket-Protocol** header, which is the only one javascript can set on a websocket upgrade request.
+
+The token is in 3 parts separated by an underscore. See *RC2AuthServletFilter.java* and *LoginResource.java* for details.
+
+## File/Image client-side caching
+
+All instances of RCFile are sent with an E-Tag that is unique per version of the file. If it hasn't changed, content won't be returned or queried from the database.
+
+Session images are handled by id. Since they are never modified, the last-modified header is set to the previous day. Request check the If-Modified-Since header and return a 304.
 
 ## Sessions
 
@@ -86,3 +103,11 @@ To setup the test database, run `createdb -O rc2 rc2test`, `psql -U rc2 rc2test 
 ## TODO
 
 * implement login security measures: stop brute force attacks, limit failed logins by account and/or ip address
+
+## Future optimizations to consider
+
+* Use a LoadingCache for RCUsers fetched in the AuthFilter based on auth token. At a minimum, caching for a few seconds should offer a dramatic reduction in db calls if fetching multiple SessionImages.
+
+* Consider a cache for file access if multiple users in same session. There will be multiple hits in same small timeframe.
+
+* *PermissionChecker.java* would be another place for a cache.

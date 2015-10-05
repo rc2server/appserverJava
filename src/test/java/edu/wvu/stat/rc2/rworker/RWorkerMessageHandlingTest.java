@@ -118,8 +118,8 @@ public class RWorkerMessageHandlingTest {
 		byte[] imgData = new byte[1];
 		final int batchId = 1002;
 		List<RCSessionImage> fakeImages = Arrays.asList(
-				RCSessionImage.create(101, delegate.sessionRecordId, batchId, "foo.jpg", new Date(), imgData),
-				RCSessionImage.create(102, delegate.sessionRecordId, batchId, "bar.png", new Date(), imgData)
+				RCSessionImage.create(101, delegate.sessionRecordId, batchId, 1, "foo.jpg", new Date(), imgData),
+				RCSessionImage.create(102, delegate.sessionRecordId, batchId, 1, "bar.png", new Date(), imgData)
 			);
 		delegate.dao = mock(Rc2DAO.class);
 		when(delegate.dao.findImageBatchById(batchId)).thenReturn(fakeImages);
