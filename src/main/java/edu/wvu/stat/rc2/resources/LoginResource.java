@@ -17,7 +17,6 @@ import javax.ws.rs.core.Response;
 
 import org.hibernate.validator.constraints.NotEmpty;
 import org.mindrot.BCrypt;
-import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,7 @@ import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCLoginTokenQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
-import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
+import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 @Path("/login")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,8 +42,8 @@ public class LoginResource extends BaseResource {
 		
 	}
 
-	public LoginResource(DBI dbi, RCUser user) {
-		super(dbi, user);
+	public LoginResource(Rc2DAO dao, RCUser user) {
+		super(dao, user);
 		
 	}
 
@@ -53,22 +52,21 @@ public class LoginResource extends BaseResource {
 		RCUser user = getUser();
 		if (null == user)
 			return Response.status(Response.Status.UNAUTHORIZED).build();
-		return Response.ok(new LoginOutput(user, _dbi, getLoginToken().getCookieValue())).build();
+		return Response.ok(new LoginOutput(user, _dao, getLoginToken().getCookieValue())).build();
 	}
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response loginUser(@Valid LoginInput input) {
-		RCUser.Queries userDao = _dbi.onDemand(RCUser.Queries.class);
-		RCUser user = userDao.findByLogin(input.getLogin());
+		RCUser user = _dao.getUserDao().findByLogin(input.getLogin());
 		if (user == null || !user.isEnabled() || !BCrypt.checkpw(input.getPassword(), user.getHashedPassword()))
 			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 		
-		RCLoginTokenQueries tokenDao = _dbi.onDemand(RCLoginTokenQueries.class);
+		RCLoginTokenQueries tokenDao = _dao.getDBI().onDemand(RCLoginTokenQueries.class);
 		RCLoginToken token = tokenDao.createToken(user.getId(), random.nextLong(), random.nextLong());
 		
 		NewCookie me = new NewCookie("me", token.getCookieValue(), "/", "", "", NewCookie.DEFAULT_MAX_AGE, true);
-		return Response.ok(new LoginOutput(user, _dbi, token.getCookieValue())).cookie(me).build();
+		return Response.ok(new LoginOutput(user, _dao, token.getCookieValue())).cookie(me).build();
 	}
 	
 	static class LoginInput {
@@ -90,12 +88,11 @@ public class LoginResource extends BaseResource {
 		final String _token;
 		final List<RCWorkspace> _wspaces;
 		
-		LoginOutput(RCUser user, DBI dbi, String token) {
+		LoginOutput(RCUser user, Rc2DAO dao, String token) {
 			_user = user;
 			_token = token;
-			RCWorkspaceQueries dao = dbi.onDemand(RCWorkspaceQueries.class);
-			_wspaces = dao.ownedByUser(user.getId());
-			RCFileQueries fileDao = dbi.onDemand(RCFileQueries.class);
+			_wspaces = dao.getWorkspaceDao().ownedByUser(user.getId());
+			RCFileQueries fileDao = dao.getDBI().onDemand(RCFileQueries.class);
 			for (RCWorkspace wspace : _wspaces) {
 				wspace.setFiles(fileDao.filesForWorkspaceId(wspace.getId()));
 			}

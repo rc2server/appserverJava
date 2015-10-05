@@ -17,7 +17,7 @@ public class UserResourceTest extends BaseResourceTest {
 	
 	@ClassRule
 	public static final ResourceTestRule resources = ResourceTestRule.builder()
-		.addResource(new UserResource(dbfactory.createDBI(), user))
+		.addResource(new UserResource(_dao, user))
 		.build();
 	
 	@Test

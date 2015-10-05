@@ -10,7 +10,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
-import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +18,7 @@ import edu.wvu.stat.rc2.RCCustomError;
 import edu.wvu.stat.rc2.RCError;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCUser;
+import edu.wvu.stat.rc2.persistence.Rc2DAO;
 import edu.wvu.stat.rc2.rs.Rc2DBInject;
 import static edu.wvu.stat.rc2.Rc2AppConfiguration.*;
 
@@ -26,21 +26,21 @@ public abstract class BaseResource {
 	final static Logger log= LoggerFactory.getLogger("rc2.BaseResource");
 	
 	@Context  HttpServletRequest _servletRequest;
-	@Rc2DBInject DBI _dbi;
+	@Rc2DBInject Rc2DAO _dao;
 	private RCUser _user;
 	private PermissionChecker _permChecker;
 
 	public BaseResource() {}
 
 	/** constructor for unit tests to bypass injection */
-	BaseResource(DBI dbi, RCUser user) {
-		_dbi = dbi;
+	BaseResource(Rc2DAO dao, RCUser user) {
+		_dao = dao;
 		_user = user;
 	}
 
 	protected PermissionChecker getPermChecker() {
 		if (null == _permChecker)
-			_permChecker = new PermissionChecker(_dbi, getUser());
+			_permChecker = new PermissionChecker(getUser());
 		return _permChecker;
 	}
 	

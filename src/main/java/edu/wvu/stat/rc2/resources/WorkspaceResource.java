@@ -17,7 +17,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.hibernate.validator.constraints.NotEmpty;
-import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
-import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
+import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 @Path("/workspaces")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,17 +37,16 @@ public class WorkspaceResource extends BaseResource {
 		
 	}
 
-	public WorkspaceResource(DBI dbi, RCUser user) {
-		super(dbi, user);
+	public WorkspaceResource(Rc2DAO dao, RCUser user) {
+		super(dao, user);
 	}
 
 	@Path("{id}/files")
 	public FileResource fileResource(@PathParam("id") int wspaceId) {
 		try {
-			RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
-			RCWorkspace wspace = dao.findById(wspaceId);
+			RCWorkspace wspace = _dao.findWorkspaceById(wspaceId);
 			checkWorkspacePermissions(wspace);
-			FileResource rsrc = new FileResource(_dbi, getUser(), wspace);
+			FileResource rsrc = new FileResource(_dao, getUser(), wspace);
 			return rsrc;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -56,15 +54,12 @@ public class WorkspaceResource extends BaseResource {
 		}
 	}
 	
-	
-	
 	// MARK: actual workspace methods
 	
 	@GET
 	public List<RCWorkspace> workspaces() {
 		RCUser user = getUser();
-		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
-		List<RCWorkspace> wspaces = dao.ownedByUserIncludingFiles(user.getId());
+		List<RCWorkspace> wspaces = _dao.getWorkspaceDao().ownedByUserIncludingFiles(user.getId());
 		if (null == wspaces) {
 			log.warn(String.format("no workspaces found for user %s", user.getLogin()));
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -75,34 +70,31 @@ public class WorkspaceResource extends BaseResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public RCWorkspace createWorkspace(@Valid WorkspacePostInput input) {
-		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
-		RCWorkspace ws = dao.findByName(input.getName());
+		RCWorkspace ws = _dao.getWorkspaceDao().findByName(input.getName());
 		if (ws != null)
 			throwCustomRestError(RCRestError.DuplicateName, "workspace");
 		RCUser user = getUser();
-		int wsid = dao.createWorkspace(input.getName(), user.getId());
-		return dao.findById(wsid);
+		int wsid = _dao.getWorkspaceDao().createWorkspace(input.getName(), user.getId());
+		return _dao.findWorkspaceById(wsid);
 	}
 	
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	public RCWorkspace updateWorkspace(@Valid WorkspacePutInput input) {
-		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
-		RCWorkspace wspace = dao.findById(input.getId());
+		RCWorkspace wspace = _dao.findWorkspaceById(input.getId());
 		checkWorkspacePermissions(wspace);
-		int upcount = dao.updateWorkspace(input.getId(), input.getName());
+		int upcount = _dao.getWorkspaceDao().updateWorkspace(input.getId(), input.getName());
 		if (upcount !=1)
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
-		return dao.findById(input.getId());
+		return _dao.findWorkspaceById(input.getId());
 	}
 	
 	@DELETE
 	@Path("{id}")
 	public Response deleteWorkspace(@PathParam("id") int id) {
-		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
-		RCWorkspace wspace = dao.findById(id);
+		RCWorkspace wspace = _dao.findWorkspaceById(id);
 		checkWorkspacePermissions(wspace);
-		dao.deleteWorkspace(id);
+		_dao.getWorkspaceDao().deleteWorkspace(id);
 		return Response.status(Response.Status.NO_CONTENT).build();
 	}
 	

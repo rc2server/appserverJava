@@ -30,7 +30,7 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 
 	@ClassRule
 	public static final ResourceTestRule resources = ResourceTestRule.builder()
-		.addResource(new WorkspaceResource(dbfactory.createDBI(), user))
+		.addResource(new WorkspaceResource(_dao, user))
 		.build();
 
 	@SuppressWarnings("unchecked")

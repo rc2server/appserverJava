@@ -7,9 +7,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 
-import org.skife.jdbi.v2.DBI;
-
 import edu.wvu.stat.rc2.persistence.RCUser;
+import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -20,16 +19,15 @@ public class UserResource extends BaseResource {
 		
 	}
 
-	public UserResource(DBI dbi, RCUser user) {
-		super(dbi, user);
+	public UserResource(Rc2DAO dao, RCUser user) {
+		super(dao, user);
 		
 	}
 
 	@Path("users/{userid}")
 	@GET
 	public RCUser getUser(@PathParam("userid") String userid) {
-		RCUser.Queries dao = _dbi.onDemand(RCUser.Queries.class);
-		RCUser user = dao.findById(Integer.parseInt(userid));
+		RCUser user = _dao.findUserById(Integer.parseInt(userid));
 		if (null == user) {
 			throw new WebApplicationException(404);
 		}

@@ -28,6 +28,7 @@ import edu.wvu.stat.rc2.persistence.RCFile;
 import edu.wvu.stat.rc2.persistence.RCFileQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
+import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 @Produces(MediaType.APPLICATION_JSON)
 public class FileResource {
@@ -36,8 +37,8 @@ public class FileResource {
 	final RCUser _user;
 	final DBI _dbi;
 
-	public FileResource(DBI dbi, RCUser user, RCWorkspace wspace) {
-		_dbi = dbi;
+	public FileResource(Rc2DAO dao, RCUser user, RCWorkspace wspace) {
+		_dbi = dao.getDBI();
 		_user = user;
 		_wspace = wspace;
 	}

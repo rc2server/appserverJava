@@ -12,11 +12,11 @@ import org.glassfish.hk2.api.InjectionResolver;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.process.internal.RequestScoped;
-import org.skife.jdbi.v2.DBI;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import edu.wvu.stat.rc2.persistence.Rc2DAO;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.resources.LoginResource;
 import edu.wvu.stat.rc2.resources.UserResource;
@@ -41,6 +41,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	
 	private ScheduledExecutorService _execService;
 	private RCSessionCache _sessionCache;
+	private Rc2DAO _dao;
 	
 	@Override
 	public String getName() {
@@ -76,7 +77,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		env.jersey().register(new AbstractBinder() {
 			@Override
 			protected void configure() {
-				bindFactory(DBIFactory.class).to(DBI.class).in(RequestScoped.class);
+				bindFactory(DAOFactory.class).to(Rc2DAO.class).in(RequestScoped.class);
 				bind(Rc2DBInjectResolver.class)
 					.to(new TypeLiteral<InjectionResolver<Rc2DBInject>>(){})
 					.in(Singleton.class);
@@ -86,14 +87,28 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		env.healthChecks().register("database", new DatabaseHealthCheck(dbfactory));
 	}
 
-	static class DBIFactory implements Factory<DBI> {
+	//uses double check idom to make we get a valid dao 
+	public Rc2DAO getDAO() {
+		Rc2DAO dao = _dao;
+		if (null == dao) {
+			synchronized(this) {
+				if (null == _dao) {
+					_dao = dbfactory.createDAO();
+				}
+				dao = _dao;
+			}
+		}
+		return dao;
+	}
+	
+	class DAOFactory implements Factory<Rc2DAO> {
 		@Override
-		public void dispose(DBI arg0) {
+		public void dispose(Rc2DAO arg0) {
 		}
 
 		@Override
-		public DBI provide() {
-			return dbfactory.createDBI();
+		public Rc2DAO provide() {
+			return getDAO();
 		}
 		
 	}

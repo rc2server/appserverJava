@@ -44,7 +44,7 @@ public class FileUploadTest extends JerseyTest {
 	public class UploadTestConfig extends ResourceConfig {
 		public UploadTestConfig() {
 			register(MultiPartFeature.class);
-			register(new WorkspaceResource(dao.getDBI(), user));
+			register(new WorkspaceResource(dao, user));
 		}
 	}
 
