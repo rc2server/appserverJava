@@ -3,6 +3,7 @@ package edu.wvu.stat.rc2.resources;
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 
+import java.io.InputStream;
 import java.util.List;
 
 import javax.ws.rs.WebApplicationException;
@@ -19,6 +20,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import com.google.common.io.ByteStreams;
 
 import edu.wvu.stat.rc2.RCCustomError;
 import edu.wvu.stat.rc2.RCIntegrationTest;
@@ -98,5 +101,13 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 		target
 			.request(MediaType.APPLICATION_JSON)
 			.put(Entity.entity(update, MediaType.APPLICATION_JSON), RCWorkspace.class);
+	}
+	
+	@Test
+	public void testFetchSessionImageById() throws Exception {
+		WebTarget target = resources.client().target("/workspaces/1/images/1");
+		Response rsp = target.request(MediaType.APPLICATION_OCTET_STREAM).get();
+		byte[] data = ByteStreams.toByteArray((InputStream) rsp.getEntity());
+		assertThat(data.length, is(13492));
 	}
 }

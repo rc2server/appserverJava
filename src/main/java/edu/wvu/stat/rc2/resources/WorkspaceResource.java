@@ -58,7 +58,6 @@ public class WorkspaceResource extends BaseResource {
 	}
 	
 	// MARK: SessionImage access
-	// TODO: add unit test
 	
 	@Path("{id}/images/{iid}")
 	@GET

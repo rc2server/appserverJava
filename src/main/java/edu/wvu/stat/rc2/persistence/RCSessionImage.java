@@ -54,11 +54,15 @@ public abstract class RCSessionImage {
 	}
 
 	public interface Queries {
-		@SqlQuery("select * from sessionimage where id = :id")
+		@SqlQuery("select img.id as \"id\", img.sessionId as \"sessionId\", rec.wspaceid as \"wspaceId\", batchId, " +
+				"name, dateCreated, imgdata from sessionimage img join sessionrecord rec on img.sessionid = rec.id " +
+				"where img.id = :id")
 		@Mapper(RCSessionImageMapper.class)
 		RCSessionImage findById(@Bind("id") int id);
 
-		@SqlQuery("select * from sessionimage where batchid = :batchid")
+		@SqlQuery("select img.id as \"id\", img.sessionId as \"sessionId\", rec.wspaceid as \"wspaceId\", batchId, " +
+				"name, dateCreated, imgdata from sessionimage img join sessionrecord rec on img.sessionid = rec.id " +
+				"where img.batchid = :batchid")
 		@Mapper(RCSessionImageMapper.class)
 		List<RCSessionImage> findByBatchId(@Bind("batchid") int batchid);
 }
