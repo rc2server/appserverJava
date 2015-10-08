@@ -3,15 +3,12 @@ package edu.wvu.stat.rc2;
 import java.util.EnumSet;
 import java.util.concurrent.ScheduledExecutorService;
 
-import javax.inject.Singleton;
 import javax.servlet.DispatcherType;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
 
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.hk2.api.Factory;
-import org.glassfish.hk2.api.InjectionResolver;
-import org.glassfish.hk2.api.TypeLiteral;
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
-import org.glassfish.jersey.process.internal.RequestScoped;
+import org.glassfish.jersey.server.ServerProperties;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -21,8 +18,6 @@ import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.resources.LoginResource;
 import edu.wvu.stat.rc2.resources.UserResource;
 import edu.wvu.stat.rc2.resources.WorkspaceResource;
-import edu.wvu.stat.rc2.rs.Rc2DBInject;
-import edu.wvu.stat.rc2.rs.Rc2DBInjectResolver;
 import edu.wvu.stat.rc2.server.HashPasswordCommand;
 import edu.wvu.stat.rc2.ws.RCSessionCache;
 import edu.wvu.stat.rc2.ws.RCSessionServlet;
@@ -62,6 +57,8 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		_execService = env.lifecycle().scheduledExecutorService("rc2-exec", true).build();
 		_sessionCache.scheduleCleanupTask(_execService);
 		env.lifecycle().manage(_sessionCache);
+		env.jersey().getResourceConfig().property(ServerProperties.TRACING, "ALL");
+		env.jersey().getResourceConfig().property(ServerProperties.TRACING_THRESHOLD, "VERBOSE");
 		
 		if (config.getPrettyPrint())
 			env.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -74,17 +71,10 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		ServletHolder h = new ServletHolder(new RCSessionServlet(_sessionCache));
 		env.getApplicationContext().addServlet(h, "/ws/*");
 
-		env.jersey().register(new AbstractBinder() {
-			@Override
-			protected void configure() {
-				bindFactory(DAOFactory.class).to(Rc2DAO.class).in(RequestScoped.class);
-				bind(Rc2DBInjectResolver.class)
-					.to(new TypeLiteral<InjectionResolver<Rc2DBInject>>(){})
-					.in(Singleton.class);
-			}
-		});
+		env.jersey().register(new DAOInjectFilter());
 
 		env.healthChecks().register("database", new DatabaseHealthCheck(dbfactory));
+		System.err.println("run complete");
 	}
 
 	//uses double check idom to make we get a valid dao 
@@ -101,15 +91,9 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		return dao;
 	}
 	
-	class DAOFactory implements Factory<Rc2DAO> {
-		@Override
-		public void dispose(Rc2DAO arg0) {
-		}
-
-		@Override
-		public Rc2DAO provide() {
-			return getDAO();
-		}
-		
+	class DAOInjectFilter implements ContainerRequestFilter {
+      public void filter(ContainerRequestContext ctx) {
+        ctx.setProperty("rc2.dao", getDAO());
+    }
 	}
 }

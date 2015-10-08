@@ -19,14 +19,13 @@ import edu.wvu.stat.rc2.RCError;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
-import edu.wvu.stat.rc2.rs.Rc2DBInject;
 import static edu.wvu.stat.rc2.Rc2AppConfiguration.*;
 
 public abstract class BaseResource {
 	final static Logger log= LoggerFactory.getLogger("rc2.BaseResource");
 	
 	@Context  HttpServletRequest _servletRequest;
-	@Rc2DBInject Rc2DAO _dao;
+	Rc2DAO _dao;
 	private RCUser _user;
 	private PermissionChecker _permChecker;
 
@@ -34,10 +33,16 @@ public abstract class BaseResource {
 
 	/** constructor for unit tests to bypass injection */
 	BaseResource(Rc2DAO dao, RCUser user) {
-		_dao = dao;
+	  _dao = dao;
 		_user = user;
 	}
 
+	protected Rc2DAO getDAO() {
+	  if (null == _dao)
+	    _dao = (Rc2DAO)_servletRequest.getAttribute("rc2.dao");
+	  return _dao;
+	}
+	
 	protected PermissionChecker getPermChecker() {
 		if (null == _permChecker)
 			_permChecker = new PermissionChecker(getUser());

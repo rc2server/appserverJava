@@ -45,8 +45,11 @@ public class Rc2AuthServletFilter implements Filter {
 		HttpServletRequest req = (HttpServletRequest)request;
 		//always allow login requests via POST
 		String path = req.getPathInfo();
-		if (path != null && path.equals("login") && req.getMethod().equalsIgnoreCase("POST"))
+		if (path != null && path.matches("/?login") && req.getMethod().equalsIgnoreCase("POST")) {
+		  System.err.println("auth ok for login");
+		  chain.doFilter(request, response);
 			return;
+		}
 		
 		//for robots, return a basic string saying everything is disallowed
 		if (path.equals("/robots.txt")) {

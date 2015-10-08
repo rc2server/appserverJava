@@ -39,12 +39,11 @@ public class LoginResource extends BaseResource {
 	
 	public LoginResource() {
 		super();
-		
+		System.err.println("login created");
 	}
 
 	public LoginResource(Rc2DAO dao, RCUser user) {
 		super(dao, user);
-		
 	}
 
 	@GET
@@ -58,7 +57,7 @@ public class LoginResource extends BaseResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response loginUser(@Valid LoginInput input) {
-		RCUser user = _dao.getUserDao().findByLogin(input.getLogin());
+		RCUser user = getDAO().getUserDao().findByLogin(input.getLogin());
 		if (user == null || !user.isEnabled() || !BCrypt.checkpw(input.getPassword(), user.getHashedPassword()))
 			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 		
