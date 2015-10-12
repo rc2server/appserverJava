@@ -50,7 +50,7 @@ public class LoginResource extends BaseResource {
 		RCUser user = getUser();
 		if (null == user)
 			return Response.status(Response.Status.UNAUTHORIZED).build();
-		return Response.ok(new LoginOutput(user, _dao, getLoginToken().getCookieValue())).build();
+		return Response.ok(new LoginOutput(user, getDAO(), getLoginToken().getCookieValue())).build();
 	}
 	
 	@POST

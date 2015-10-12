@@ -46,7 +46,7 @@ public class Rc2AuthServletFilter implements Filter {
 		//always allow login requests via POST
 		String path = req.getPathInfo();
 		if (path != null && path.matches("/?login") && req.getMethod().equalsIgnoreCase("POST")) {
-		  chain.doFilter(request, response);
+			chain.doFilter(request, response);
 			return;
 		}
 		
@@ -87,6 +87,7 @@ public class Rc2AuthServletFilter implements Filter {
 		}
 		request.setAttribute(UserSessionKey, user);
 		request.setAttribute(LoginTokenKey, token);
+		chain.doFilter(request, response);
 }
 
 	private void abortRequest(ServletResponse rsp, int code, String error) throws IOException {
