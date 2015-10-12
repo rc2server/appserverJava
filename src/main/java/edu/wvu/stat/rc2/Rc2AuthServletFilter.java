@@ -46,7 +46,6 @@ public class Rc2AuthServletFilter implements Filter {
 		//always allow login requests via POST
 		String path = req.getPathInfo();
 		if (path != null && path.matches("/?login") && req.getMethod().equalsIgnoreCase("POST")) {
-		  System.err.println("auth ok for login");
 		  chain.doFilter(request, response);
 			return;
 		}

@@ -39,7 +39,6 @@ public class LoginResource extends BaseResource {
 	
 	public LoginResource() {
 		super();
-		System.err.println("login created");
 	}
 
 	public LoginResource(Rc2DAO dao, RCUser user) {

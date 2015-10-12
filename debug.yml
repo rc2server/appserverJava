@@ -16,3 +16,4 @@ server:
 
 
 prettyPrint: true
+enableTracing: true

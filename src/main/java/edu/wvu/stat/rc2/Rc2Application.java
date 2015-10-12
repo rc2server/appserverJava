@@ -57,8 +57,10 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		_execService = env.lifecycle().scheduledExecutorService("rc2-exec", true).build();
 		_sessionCache.scheduleCleanupTask(_execService);
 		env.lifecycle().manage(_sessionCache);
-		env.jersey().getResourceConfig().property(ServerProperties.TRACING, "ALL");
-		env.jersey().getResourceConfig().property(ServerProperties.TRACING_THRESHOLD, "VERBOSE");
+		if (config.getEnableTracing()) {
+			env.jersey().getResourceConfig().property(ServerProperties.TRACING, "ON_DEMAND");
+			env.jersey().getResourceConfig().property(ServerProperties.TRACING_THRESHOLD, "TRACE");
+		}
 		
 		if (config.getPrettyPrint())
 			env.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -92,8 +94,8 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	}
 	
 	class DAOInjectFilter implements ContainerRequestFilter {
-      public void filter(ContainerRequestContext ctx) {
-        ctx.setProperty("rc2.dao", getDAO());
-    }
+		public void filter(ContainerRequestContext ctx) {
+			ctx.setProperty("rc2.dao", getDAO());
+		}
 	}
 }
