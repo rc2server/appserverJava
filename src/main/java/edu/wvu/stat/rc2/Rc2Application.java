@@ -6,6 +6,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import javax.servlet.DispatcherType;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.PreMatching;
 
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ServerProperties;
@@ -93,6 +94,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		return dao;
 	}
 	
+	@PreMatching
 	class DAOInjectFilter implements ContainerRequestFilter {
 		public void filter(ContainerRequestContext ctx) {
 			ctx.setProperty("rc2.dao", getDAO());

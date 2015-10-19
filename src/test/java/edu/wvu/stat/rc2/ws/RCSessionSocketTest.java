@@ -91,7 +91,7 @@ public class RCSessionSocketTest {
 		}
 		
 		@Override
-		public void processWebsocketMessage(RCSessionSocket socket, Map<String, Object> msg) {
+		public void processWebsocketMessage(RCSessionSocket socket, String json) {
 			messages.add("msg");
 		}
 		

@@ -1,5 +1,6 @@
 package edu.wvu.stat.rc2.ws;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,6 +16,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
+import edu.wvu.stat.rc2.rworker.RWorker;
+import edu.wvu.stat.rc2.rworker.message.BaseMessage;
+import edu.wvu.stat.rc2.ws.request.*;
+import edu.wvu.stat.rc2.ws.resposne.BaseResponse;
+import edu.wvu.stat.rc2.ws.resposne.ErrorResponse;
 import edu.wvu.stat.rc2.persistence.RCSessionRecord;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
@@ -25,7 +31,7 @@ import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 
 @SuppressWarnings("unused")
-public final class RCSession implements RCSessionSocket.Delegate {
+public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delegate {
 	static final Logger log = LoggerFactory.getLogger("rc2.RCSession");
 
 	private final Rc2DataSourceFactory _dbfactory;
@@ -33,6 +39,7 @@ public final class RCSession implements RCSessionSocket.Delegate {
 	private final List<RCSessionSocket> _webSockets;
 	private ObjectMapper _mapper;
 	private Rc2DAO _dao;
+	private RWorker _rworker;
 	
 	private final long _startTime;
 	private final int _sessionId;
@@ -56,11 +63,15 @@ public final class RCSession implements RCSessionSocket.Delegate {
 		_webSockets = new ArrayList<RCSessionSocket>();
 		_startTime = System.currentTimeMillis();
 		
+		_rworker = new RWorker(new RWorker.SocketFactory(), this);
+		
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
 		_sessionId = srecDao.createSessionRecord(_wspace.getId());
 	}
 
+	//RCSessionSocket.Delegate
 	public int getWorkspaceId() { return _wspace.getId(); }
+
 	public int getSessionRecordId() { return _sessionId; }
 	public ObjectMapper getObjectMapper() { return _mapper; }
 	public int getClientCount() {
@@ -74,7 +85,7 @@ public final class RCSession implements RCSessionSocket.Delegate {
 		srecDao.closeSessionRecord(_sessionId);
 	}
 	
-	private void handleExecuteScript(Map<String,Object> cmdObj, RCSessionSocket socket) {
+	private void handleExecuteRequest(ExecuteRequest request) {
 		
 	}
 
@@ -94,12 +105,64 @@ public final class RCSession implements RCSessionSocket.Delegate {
 		
 	}
 
+	//RCSessionSocket.Delegate
+	@Override
+	public void websocketUseDatabaseHandle(HandleCallback<Void> callback) {
+		_dao.getDBI().withHandle(callback);
+	}
 
-	public synchronized void broadcastToAllClients(Map<String,Object> msg) {
+	//RCSessionSocket.Delegate
+	@Override
+	public Map<String, Object> getSessionDescriptionForWebsocket(RCSessionSocket socket) {
+		HashMap<String,Object> map = new HashMap<String,Object>();
+		map.put("workspace", _wspace);
+		return map;
+	}
+
+	//RCSessionSocket.Delegate
+	@Override
+	public void websocketOpened(RCSessionSocket socket) {
+		_webSockets.add(socket);
+	}
+
+	//RCSessionSocket.Delegate
+	@Override
+	public void websocketClosed(RCSessionSocket socket) {
+		_webSockets.remove(socket);
+	}
+
+	//RCSessionSocket.Delegate
+	@Override
+	public void processWebsocketMessage(RCSessionSocket socket, String msg) {
+		BaseRequest req=null;
+		String cmdStr = null;
 		try {
-			String msgStr = _mapper.writeValueAsString(msg);
-//			if (null != _jsonLog)
-//				_jsonLog.println("to all:" + msgStr);
+			req = _mapper.readValue(msg, BaseRequest.class);
+			final String methodName = "handle" + req.getClass().getSimpleName();
+			Method m = getClass().getDeclaredMethod(methodName, req.getClass());
+			m.invoke(this, req);
+		} catch (Exception e) {
+			log.error("error parsing client json", e);
+			broadcastToAllClients(new ErrorResponse("unknown error"));
+		}
+	}
+
+	//RCSessionSocket.Delegate
+	@Override
+	public void processWebsocketBinaryMessage(RCSessionSocket socket, byte[] data, int offset, int length) {
+	}
+
+	//RWorker.Delegate
+	@Override
+	public Rc2DAO getDAO() {
+		return _dao;
+	}
+
+	//RWorker.Delegate
+	@Override
+	public void broadcastToAllClients(BaseResponse response) {
+		try {
+			String msgStr = _mapper.writeValueAsString(response);
 			_webSockets.forEach(socket -> {
 				try {
 					socket.sendMessage(msgStr);
@@ -112,118 +175,32 @@ public final class RCSession implements RCSessionSocket.Delegate {
 			log.warn("error broadcasting a all users", e);
 		}
 	}
-	
-	
-	@Override
-	public void websocketUseDatabaseHandle(HandleCallback<Void> callback) {
-		_dao.getDBI().withHandle(callback);
-	}
 
+	//RWorker.Delegate
 	@Override
-	public Map<String, Object> getSessionDescriptionForWebsocket(RCSessionSocket socket) {
-		return null;
-	}
-
-	@Override
-	public void websocketOpened(RCSessionSocket socket) {
-		_webSockets.add(socket);
-	}
-
-	@Override
-	public void websocketClosed(RCSessionSocket socket) {
-		_webSockets.remove(socket);
-	}
-
-	@Override
-	public void processWebsocketMessage(RCSessionSocket socket, Map<String, Object> msg) {
-		String cmdStr = null;
+	public void broadcastToSingleClient(BaseResponse response, int socketId) {
 		try {
-			cmdStr = _mapper.writeValueAsString(msg);
-//			if (null != _jsonLog)
-//				_jsonLog.println(socket.getSocketId() + " said:" + cmdStr);
+			RCSessionSocket socket = _webSockets.stream().filter(p -> p.getSocketId() == socketId).findFirst().get();
+			String msgStr = _mapper.writeValueAsString(response);
+			socket.sendMessage(msgStr);
 		} catch (Exception e) {
-		}
-//		_sessionTracker.logMessageReceived(this, socket, cmdObj);
-		log.info("rcvd command:" + cmdStr);
-		Map<String,Object> resObj = new HashMap<String,Object>();
-		try {
-			String cmd = (String)msg.get("cmd");
-			Dispatcher d = Dispatcher.valueOf(cmd);
-			d.handleCommand(this, msg, resObj, socket);
-		} catch (Exception e) {
-			log.warn("exception evaluating command", e);
-			try {
-				resObj.put(MsgKey_status, "unknown error");
-			} catch (Exception ee) {
-				ee.printStackTrace();
-			}
-			broadcastToAllClients(resObj);
+			log.warn("error sending single message", e);
 		}
 	}
 
+	//RWorker.Delegate
 	@Override
-	public void processWebsocketBinaryMessage(RCSessionSocket socket, byte[] data, int offset, int length) {
+	public void clientHadError(Exception e) {
+		log.warn("client had error", e);
+		//TODO: handle better
 	}
-	
-	enum Dispatcher {
-		executeScript {
-			@Override
-			void handleCommand(RCSession session, Map<String,Object> cmdObj, Map<String,Object> response, 
-					RCSessionSocket socket)  
-			{
-				session.handleExecuteScript(cmdObj, socket);
-			}
-		},
-		executeScriptFile {
-			@Override
-			void handleCommand(RCSession  session, Map<String,Object> cmdObj, Map<String,Object> response, 
-					RCSessionSocket socket) 
-			{
-				session.handleExecuteScriptFile(cmdObj, socket);
-			}
-		},
-		userlist {
-			@Override
-			void handleCommand(RCSession  session, Map<String,Object> cmdObj, Map<String,Object> response, 
-					RCSessionSocket socket) 
-			{
-				session.handleSessionList(cmdObj, socket);
-			}
-		},
-		keepAlive {
-			@Override
-			void handleCommand(RCSession  session, Map<String,Object> cmdObj, Map<String,Object> response, 
-					RCSessionSocket socket)  
-			{
-			}
-		},
-		watchvariables {
-			@Override
-			void handleCommand(RCSession  session, Map<String,Object> cmdObj, Map<String,Object> response, 
-					RCSessionSocket socket) 
-			{
-				session.handleWatchVariables(cmdObj, socket);
-			}
-		},
-		getVariable {
-			@Override
-			void handleCommand(RCSession  session, Map<String,Object> cmdObj, Map<String,Object> response, 
-					RCSessionSocket socket) 
-			{
-				session.handleGetVariable(cmdObj, socket);
-			}
-		},
-		help {
-			@Override
-			void handleCommand(RCSession  session, Map<String,Object> cmdObj, Map<String,Object> response, 
-					RCSessionSocket socket) 
-			{
-				session.handleGetVariable(cmdObj, socket);
-			}
-		};
-		abstract void handleCommand(RCSession  session, Map<String,Object> cmdObj, Map<String,Object> response, 
-				RCSessionSocket socket) ;
-	};
+
+	//RWorker.Delegate
+	@Override
+	public void connectionFailed(Exception e) {
+		log.error("connection to rcompute server failed");
+		//TODO: handle better
+	}
 
 	enum MessageKeys {
 		msg, status, user, fname, sid

@@ -27,7 +27,7 @@ public class UserResource extends BaseResource {
 	@Path("users/{userid}")
 	@GET
 	public RCUser getUser(@PathParam("userid") String userid) {
-		RCUser user = _dao.findUserById(Integer.parseInt(userid));
+		RCUser user = getDAO().findUserById(Integer.parseInt(userid));
 		if (null == user) {
 			throw new WebApplicationException(404);
 		}

@@ -41,8 +41,11 @@ public class RCSessionServlet extends WebSocketServlet {
 					resp.sendError(HttpStatus.BAD_REQUEST_400, "user not authenticated");
 					return null;
 				}
+				String protocol = req.getHeader("Sec-WebSocket-Protocol");
+				if (protocol != null)
+					resp.addHeader("Sec-WebSocket-Protocol", protocol);
 				log.info("websocket got user " + user.getLogin());
-				int wspaceId = Integer.parseInt(req.getRequestPath());
+				int wspaceId = Integer.parseInt(req.getRequestPath().replace("/ws/", ""));
 				RCSessionSocket socket = _sessionCache.socketForWorkspaceAndUser(req, wspaceId, user);
 				return socket;
 			} catch (IOException ioe) {

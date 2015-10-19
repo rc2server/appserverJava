@@ -60,11 +60,11 @@ public class LoginResource extends BaseResource {
 		if (user == null || !user.isEnabled() || !BCrypt.checkpw(input.getPassword(), user.getHashedPassword()))
 			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 		
-		RCLoginTokenQueries tokenDao = _dao.getDBI().onDemand(RCLoginTokenQueries.class);
+		RCLoginTokenQueries tokenDao = getDAO().getDBI().onDemand(RCLoginTokenQueries.class);
 		RCLoginToken token = tokenDao.createToken(user.getId(), random.nextLong(), random.nextLong());
 		
 		NewCookie me = new NewCookie("me", token.getCookieValue(), "/", "", "", NewCookie.DEFAULT_MAX_AGE, true);
-		return Response.ok(new LoginOutput(user, _dao, token.getCookieValue())).cookie(me).build();
+		return Response.ok(new LoginOutput(user, getDAO(), token.getCookieValue())).cookie(me).build();
 	}
 	
 	static class LoginInput {

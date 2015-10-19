@@ -47,9 +47,9 @@ public class WorkspaceResource extends BaseResource {
 	@Path("{id}/files")
 	public FileResource fileResource(@PathParam("id") int wspaceId) {
 		try {
-			RCWorkspace wspace = _dao.findWorkspaceById(wspaceId);
+			RCWorkspace wspace = getDAO().findWorkspaceById(wspaceId);
 			checkWorkspacePermissions(wspace);
-			FileResource rsrc = new FileResource(_dao, getUser(), wspace);
+			FileResource rsrc = new FileResource(getDAO(), getUser(), wspace);
 			return rsrc;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -63,9 +63,9 @@ public class WorkspaceResource extends BaseResource {
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response getImage(@PathParam("id") int wspaceId, @PathParam("iid") int imageId) {
-		RCWorkspace wspace = _dao.findWorkspaceById(wspaceId);
+		RCWorkspace wspace = getDAO().findWorkspaceById(wspaceId);
 		checkWorkspacePermissions(wspace);
-		RCSessionImage img = _dao.findImageById(imageId);
+		RCSessionImage img = getDAO().findImageById(imageId);
 		if (img.getWorkspaceId() != wspaceId) {
 			throw new WebApplicationException(Response.Status.FORBIDDEN);
 		}
@@ -83,7 +83,7 @@ public class WorkspaceResource extends BaseResource {
 	@GET
 	public List<RCWorkspace> workspaces() {
 		RCUser user = getUser();
-		List<RCWorkspace> wspaces = _dao.getWorkspaceDao().ownedByUserIncludingFiles(user.getId());
+		List<RCWorkspace> wspaces = getDAO().getWorkspaceDao().ownedByUserIncludingFiles(user.getId());
 		if (null == wspaces) {
 			log.warn(String.format("no workspaces found for user %s", user.getLogin()));
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -94,31 +94,31 @@ public class WorkspaceResource extends BaseResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public RCWorkspace createWorkspace(@Valid WorkspacePostInput input) {
-		RCWorkspace ws = _dao.getWorkspaceDao().findByName(input.getName());
+		RCWorkspace ws = getDAO().getWorkspaceDao().findByName(input.getName());
 		if (ws != null)
 			throwCustomRestError(RCRestError.DuplicateName, "workspace");
 		RCUser user = getUser();
-		int wsid = _dao.getWorkspaceDao().createWorkspace(input.getName(), user.getId());
-		return _dao.findWorkspaceById(wsid);
+		int wsid = getDAO().getWorkspaceDao().createWorkspace(input.getName(), user.getId());
+		return getDAO().findWorkspaceById(wsid);
 	}
 	
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	public RCWorkspace updateWorkspace(@Valid WorkspacePutInput input) {
-		RCWorkspace wspace = _dao.findWorkspaceById(input.getId());
+		RCWorkspace wspace = getDAO().findWorkspaceById(input.getId());
 		checkWorkspacePermissions(wspace);
-		int upcount = _dao.getWorkspaceDao().updateWorkspace(input.getId(), input.getName());
+		int upcount = getDAO().getWorkspaceDao().updateWorkspace(input.getId(), input.getName());
 		if (upcount !=1)
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
-		return _dao.findWorkspaceById(input.getId());
+		return getDAO().findWorkspaceById(input.getId());
 	}
 	
 	@DELETE
 	@Path("{id}")
 	public Response deleteWorkspace(@PathParam("id") int id) {
-		RCWorkspace wspace = _dao.findWorkspaceById(id);
+		RCWorkspace wspace = getDAO().findWorkspaceById(id);
 		checkWorkspacePermissions(wspace);
-		_dao.getWorkspaceDao().deleteWorkspace(id);
+		getDAO().getWorkspaceDao().deleteWorkspace(id);
 		return Response.status(Response.Status.NO_CONTENT).build();
 	}
 	

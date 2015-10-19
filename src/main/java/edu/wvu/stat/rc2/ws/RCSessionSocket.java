@@ -11,6 +11,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.tweak.HandleCallback;
@@ -18,20 +19,18 @@ import org.skife.jdbi.v2.tweak.VoidHandleCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import edu.wvu.stat.rc2.persistence.RCUser;
 
+@WebSocket
 public final class RCSessionSocket {
 	static final Logger log = LoggerFactory.getLogger("rc2.RCSessionSocket");
 	private static final AtomicInteger sNextId = new AtomicInteger(0);
 
 	private Session _outbound;
 	private final ObjectWriter _objWriter;
-	private final ObjectReader _objReader;
 	private final int _socketId;
 	private final long _connectTime;
 	private final String _client;
@@ -45,8 +44,6 @@ public final class RCSessionSocket {
 		_connectTime = System.currentTimeMillis();
 		_user = user;
 
-		TypeReference<HashMap<String,Object>> readTypeRef = new TypeReference<HashMap<String,Object>>() {};
-		_objReader = mapper.reader().forType(readTypeRef);
 		_objWriter = mapper.writer();
 
 		HttpServletRequest request = upRequest.getHttpServletRequest();
@@ -72,6 +69,7 @@ public final class RCSessionSocket {
 		try {
 			jo.put("msg", "userid");
 			jo.put("userid", _user.getId());
+			jo.put("socketId",  getSocketId());
 			jo.put("session", _delegate.getSessionDescriptionForWebsocket(this));
 			sendMessage(_objWriter.writeValueAsString(jo));
 		} catch (Exception e) {
@@ -93,13 +91,7 @@ public final class RCSessionSocket {
 	
 	@OnWebSocketMessage
 	public void onMessage(String data) {
-		try {
-			Map<String,Object> cmdObj = _objReader.readValue(data);
-			_delegate.processWebsocketMessage(this, cmdObj);
-		} catch (Exception e) {
-			log.warn("exception processing message", e);
-			log.info("offending json:" + data);
-		}
+		_delegate.processWebsocketMessage(this, data);
 	}
 
 	public void sendMessage(String msg) {
@@ -140,7 +132,7 @@ public final class RCSessionSocket {
 		public Map<String,Object> getSessionDescriptionForWebsocket(RCSessionSocket socket);
 		public void websocketOpened(RCSessionSocket socket);
 		public void websocketClosed(RCSessionSocket socket);
-		public void processWebsocketMessage(RCSessionSocket socket, Map<String,Object> msg);
+		public void processWebsocketMessage(RCSessionSocket socket, String msg);
 		public void processWebsocketBinaryMessage(RCSessionSocket socket, byte[] data, int offset, int length);
 	}
 }

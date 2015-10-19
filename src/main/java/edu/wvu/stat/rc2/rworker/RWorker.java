@@ -344,8 +344,21 @@ public class RWorker implements Runnable {
 	 	allows abstraction of socket creation (i.e. mocking for unit tests
 	 */
 	public static class SocketFactory {
+		private String _host;
+		private int _port;
+		public SocketFactory() {
+			this("localhost", 7714);
+		}
+		public SocketFactory(String host) {
+			this(host, 7714);
+		}
+		public SocketFactory(String host, int port) {
+			super();
+			_host = host;
+			_port = port;
+		}
 		public Socket createSocket() throws UnknownHostException, IOException {
-			return createSocket("localhost", 7719);
+			return createSocket(_host, _port);
 		}
 		public Socket createSocket(String host, int port) throws UnknownHostException, IOException {
 			return new Socket(host, port);

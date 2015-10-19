@@ -25,7 +25,7 @@ public abstract class BaseResource {
 	final static Logger log= LoggerFactory.getLogger("rc2.BaseResource");
 	
 	@Context  HttpServletRequest _servletRequest;
-	Rc2DAO _dao;
+	private Rc2DAO _dao;
 	private RCUser _user;
 	private PermissionChecker _permChecker;
 
