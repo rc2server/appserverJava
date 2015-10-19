@@ -17,11 +17,11 @@ import org.junit.Test;
 import edu.wvu.stat.rc2.persistence.RCSessionImage;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 import edu.wvu.stat.rc2.rworker.ServerMessageResolver.Messages;
-import edu.wvu.stat.rc2.ws.resposne.ErrorResponse;
-import edu.wvu.stat.rc2.ws.resposne.ExecCompleteResponse;
-import edu.wvu.stat.rc2.ws.resposne.HelpResponse;
-import edu.wvu.stat.rc2.ws.resposne.ResultsResponse;
-import edu.wvu.stat.rc2.ws.resposne.VariableResponse;
+import edu.wvu.stat.rc2.ws.response.ErrorResponse;
+import edu.wvu.stat.rc2.ws.response.ExecCompleteResponse;
+import edu.wvu.stat.rc2.ws.response.HelpResponse;
+import edu.wvu.stat.rc2.ws.response.ResultsResponse;
+import edu.wvu.stat.rc2.ws.response.VariableResponse;
 
 public class RWorkerMessageHandlingTest {
 	private TestDelegate delegate;

@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
-import edu.wvu.stat.rc2.ws.resposne.BaseResponse;
+import edu.wvu.stat.rc2.ws.response.BaseResponse;
 
 public class TestDelegate implements RWorker.Delegate {
 	int workspaceId;

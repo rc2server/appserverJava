@@ -1,4 +1,4 @@
-package edu.wvu.stat.rc2.ws.resposne;
+package edu.wvu.stat.rc2.ws.response;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

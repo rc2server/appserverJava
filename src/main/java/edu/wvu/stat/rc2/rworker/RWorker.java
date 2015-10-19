@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wvu.stat.rc2.persistence.RCSessionImage;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 import edu.wvu.stat.rc2.rworker.message.*;
-import edu.wvu.stat.rc2.ws.resposne.*;
+import edu.wvu.stat.rc2.ws.response.*;
 
 public class RWorker implements Runnable {
 	static final Logger log = LoggerFactory.getLogger("rc2.RWorker");
