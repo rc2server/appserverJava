@@ -38,7 +38,7 @@ public class RWorker implements Runnable {
 	private InputStream _in;
 	private boolean _watchingVariables;
 	private volatile boolean _shouldBeRunning;
-	final ArrayBlockingQueue<Map<String, Object>> _outputQueue;
+	final ArrayBlockingQueue<String> _outputQueue;
 
 	public RWorker(SocketFactory socketFactory, Delegate delegate) {
 		//create a default socket factory if one was not passed to us
@@ -51,7 +51,7 @@ public class RWorker implements Runnable {
 		}
 		_socketFactory = socketFactory;
 		_delegate = delegate;
-		_outputQueue = new ArrayBlockingQueue<Map<String, Object>>(OUT_QUEUE_SIZE);
+		_outputQueue = new ArrayBlockingQueue<String>(OUT_QUEUE_SIZE);
 }
 	
 	public Delegate getDelegate() { return _delegate; }
@@ -64,12 +64,16 @@ public class RWorker implements Runnable {
 		cmd.put("msg", "toggleVariableWatch");
 		cmd.put("argument", "");
 		cmd.put("watch", watch);
-		_outputQueue.add(cmd);
+		_outputQueue.add(serializeJson(cmd));
 	}
 
-	public String serializeJson(Map<String,Object> jo) throws Exception {
-		if (_delegate != null)
-			return _delegate.getObjectMapper().writeValueAsString(jo);
+	public String serializeJson(Map<String,Object> jo) {
+		try {
+			if (_delegate != null)
+				return _delegate.getObjectMapper().writeValueAsString(jo);
+		} catch (Exception e) {
+			log.error("failed to serialize json", e);
+		}
 		return null;
 	}
 
@@ -105,7 +109,7 @@ public class RWorker implements Runnable {
 		cmd.put("msg", "execScript");
 		cmd.put("argument", scriptCode);
 		cmd.put("startTime", Long.toString(System.currentTimeMillis()));
-		_outputQueue.add(cmd);
+		_outputQueue.add(serializeJson(cmd));
 	}
 
 	public void executeScriptFile(int fileId, Map<String, Object> inCmd) {
@@ -117,14 +121,14 @@ public class RWorker implements Runnable {
 		clientData.put("fileId", fileId);
 		cmd.put("clientData", clientData);
 		log.info("sending file cmd:" + cmd);
-		_outputQueue.add(cmd);
+		_outputQueue.add(serializeJson(cmd));
 	}
 
 	public void lookupInHelp(String topic, Map<String, Object> inCmd) {
 		Map<String, Object> cmd = new HashMap<String, Object>(inCmd);
 		cmd.put("msg", "help");
 		cmd.put("argument", topic);
-		_outputQueue.add(cmd);
+		_outputQueue.add(serializeJson(cmd));
 	}
 
 	public void fetchVariableValue(String varName, Map<String, Object> inCmd) {
@@ -136,7 +140,7 @@ public class RWorker implements Runnable {
 			Map<String, Object> cmd = new HashMap<String, Object>(inCmd);
 			cmd.put("msg", "getVariable");
 			cmd.put("argument", varName);
-			_outputQueue.add(cmd);
+			_outputQueue.add(serializeJson(cmd));
 		}
 	}
 
@@ -145,7 +149,7 @@ public class RWorker implements Runnable {
 		cmd.put("msg", "listVariables");
 		cmd.put("argument", "");
 		cmd.put("delta", deltaOnly);
-		_outputQueue.add(cmd);
+		_outputQueue.add(serializeJson(cmd));
 	}
 	
 	private void writeOutMessage(String msgstr) throws IOException {
@@ -169,8 +173,8 @@ public class RWorker implements Runnable {
 	
 	void handleJsonResponse(String jsonString) {
 		try {
-			BaseMessage bm = _delegate.getObjectMapper().readValue(jsonString, BaseMessage.class);
-			final String methodName = "handle" + bm.getClass().getSimpleName();
+			BaseRResponse bm = _delegate.getObjectMapper().readValue(jsonString, BaseRResponse.class);
+			final String methodName = "handle" + bm.getClass().getSimpleName().replace("RR", "R");
 			Method m = getClass().getDeclaredMethod(methodName, bm.getClass());
 			m.invoke(this, bm);
 		} catch (Exception e) {
@@ -179,13 +183,13 @@ public class RWorker implements Runnable {
 	}
 	
 	@SuppressWarnings("unused") //dynamically called
-	private void handleErrorMessage(ErrorMessage msg) {
+	private void handleErrorResponse(ErrorRResponse msg) {
 		ErrorResponse  rsp = new ErrorResponse(msg.getDetails());
 		getDelegate().broadcastToAllClients(rsp);
 	}
 
 	@SuppressWarnings("unused") //dynamically called
-	private void handleExecCompleteMessage(ExecCompleteMessage msg) {
+	private void handleExecCompleteResponse(ExecCompleteRResponse msg) {
 		int batchId = msg.getImageBatchId();
 		List<RCSessionImage> images=null;
 		if (batchId > 0) {
@@ -196,29 +200,29 @@ public class RWorker implements Runnable {
 	}
 
 	@SuppressWarnings("unused") //dynamically called
-	private void handleHelpMessage(HelpMessage msg) {
+	private void handleHelpResponse(HelpRResponse msg) {
 		HelpResponse rsp = new HelpResponse(msg.getTopic(), msg.getPaths());
 		getDelegate().broadcastToAllClients(rsp);
 	}
 
 	@SuppressWarnings("unused") //dynamically called
-	private void handleResultsMessage(ResultsMessage msg) {
+	private void handleResultsResponse(ResultsRResponse msg) {
 		getDelegate().broadcastToAllClients(new ResultsResponse(msg.getString(), 0));
 	}
 
 	@SuppressWarnings("unused") //dynamically called
-	private void handleShowOutputMessage(ShowOutputMessage msg) {
+	private void handleShowOutputResponse(ShowOutputRResponse msg) {
 		getDelegate().broadcastToAllClients(new ResultsResponse("", msg.getFileId()));
 	}
 
 	@SuppressWarnings("unused") //dynamically called
-	private void handleVariableUpdateMessage(VariableUpdateMessage msg) {
+	private void handleVariableUpdateResponse(VariableUpdateRResponse msg) {
 		VariableResponse rsp = new VariableResponse(msg.getVariables(), msg.getUserIdentifier(), msg.isDelta(), false);
 		getDelegate().broadcastToAllClients(rsp);
 	}
 
 	@SuppressWarnings("unused") //dynamically called
-	private void handleVariableValueMessage(VariableValueMessage msg) {
+	private void handleVariableValueResponse(VariableValueRResponse msg) {
 		VariableResponse rsp = new VariableResponse(msg.getValue(), msg.getUserIdentifier(), false, 
 				msg.getUserIdentifier() > 0);
 		if (rsp.isSingleValue())
@@ -250,7 +254,7 @@ public class RWorker implements Runnable {
 			jo.put("dbhost", _delegate.getDAO().getDBHost());
 			jo.put("dbuser", _delegate.getDAO().getDBUser());
 			jo.put("dbname", _delegate.getDAO().getDBDatabase());
-			_outputQueue.add(jo);
+			_outputQueue.add(serializeJson(jo));
 			// we keep our thread looping
 			synchronized (this) {
 				this.notifyAll();
@@ -322,11 +326,10 @@ public class RWorker implements Runnable {
 		public void run() {
 			try {
 				while (_shouldBeRunning) {
-					Map<String, Object> msg = _outputQueue.poll(2,
+					String msg = _outputQueue.poll(2,
 							TimeUnit.SECONDS);
 					if (msg != null) {
-						String msgstr = serializeJson(msg);
-						writeOutMessage(msgstr);
+						writeOutMessage(msg);
 					}
 				}
 			} catch (Exception e) {

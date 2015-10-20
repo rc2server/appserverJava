@@ -3,11 +3,11 @@ package edu.wvu.stat.rc2.rworker.response;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ResultsMessage extends BaseMessage {
+public class ResultsRResponse extends BaseRResponse {
 	private final String _string;
 	
 	@JsonCreator
-	public ResultsMessage(
+	public ResultsRResponse(
 			@JsonProperty("msg") String msg,
 			@JsonProperty("string") String string
 		)

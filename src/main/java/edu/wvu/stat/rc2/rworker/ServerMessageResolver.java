@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
-import edu.wvu.stat.rc2.rworker.response.BaseMessage;
+import edu.wvu.stat.rc2.rworker.response.BaseRResponse;
 
 public class ServerMessageResolver extends TypeIdResolverBase {
 	public enum Messages {
@@ -29,7 +29,7 @@ public class ServerMessageResolver extends TypeIdResolverBase {
 		}
 	}
 	
-	public final String MESSAGE_PREFIX = "edu.wvu.stat.rc2.rworker.message";
+	public final String MESSAGE_PREFIX = "edu.wvu.stat.rc2.rworker.response";
 	
 	@Override
 	public Id getMechanism() {
@@ -57,25 +57,25 @@ public class ServerMessageResolver extends TypeIdResolverBase {
 		String typeClass=null;
 		switch(Messages.valueWithJsonValue(type)) {
 			case RESULTS_MSG:
-				typeClass = "ResultsMessage";
+				typeClass = "ResultsRResponse";
 				break;
 			case ERROR_MSG:
-				typeClass = "ErrorMessage";
+				typeClass = "ErrorRResponse";
 				break;
 			case SHOW_OUTPUT_MSG:
-				typeClass = "ShowOutputMessage";
+				typeClass = "ShowOutputRResponse";
 				break;
 			case EXEC_COMPLETE_MSG:
-				typeClass = "ExecCompleteMessage";
+				typeClass = "ExecCompleteRResponse";
 				break;
 			case VAR_UPDATE_MSG:
-				typeClass = "VariableUpdateMessage";
+				typeClass = "VariableUpdateRResponse";
 				break;
 			case VAR_VALUE_MSG:
-				typeClass = "VariableValueMessage";
+				typeClass = "VariableValueRResponse";
 				break;
 			case HELP_MSG:
-				typeClass = "HelpMessage";
+				typeClass = "HelpRResponse";
 				break;
 			default:
 				throw new IllegalStateException("cannot handle message of type '" + type + "'");
@@ -84,7 +84,7 @@ public class ServerMessageResolver extends TypeIdResolverBase {
 		String clazzName = MESSAGE_PREFIX + "." + typeClass;
 		try {
 			clazz = TypeFactory.defaultInstance().findClass(clazzName);
-			baseType = context.constructType(BaseMessage.class);
+			baseType = context.constructType(BaseRResponse.class);
 		} catch (ClassNotFoundException e) {
 			throw new IllegalStateException("cannot find class '" + clazzName + "'");
 		}

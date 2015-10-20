@@ -5,13 +5,13 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ExecCompleteMessage extends BaseMessage {
+public class ExecCompleteRResponse extends BaseRResponse {
 	private final long _startTime;
 	private final int _imgBatchId;
 	private final List<Integer> _imageIds;
 	
 	@JsonCreator
-	public ExecCompleteMessage(
+	public ExecCompleteRResponse(
 			@JsonProperty("msg") String msg, 
 			@JsonProperty("startTime") String startTime,
 			@JsonProperty("images") List<Integer> imageIds,

@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.rworker.RWorker;
-import edu.wvu.stat.rc2.rworker.response.BaseMessage;
+import edu.wvu.stat.rc2.rworker.response.BaseRResponse;
 import edu.wvu.stat.rc2.ws.request.*;
 import edu.wvu.stat.rc2.ws.response.BaseResponse;
 import edu.wvu.stat.rc2.ws.response.ErrorResponse;

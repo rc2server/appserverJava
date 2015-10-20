@@ -13,14 +13,14 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.wvu.stat.rc2.rworker.response.BaseMessage;
-import edu.wvu.stat.rc2.rworker.response.ErrorMessage;
-import edu.wvu.stat.rc2.rworker.response.ExecCompleteMessage;
-import edu.wvu.stat.rc2.rworker.response.HelpMessage;
-import edu.wvu.stat.rc2.rworker.response.ResultsMessage;
-import edu.wvu.stat.rc2.rworker.response.ShowOutputMessage;
-import edu.wvu.stat.rc2.rworker.response.VariableUpdateMessage;
-import edu.wvu.stat.rc2.rworker.response.VariableValueMessage;
+import edu.wvu.stat.rc2.rworker.response.BaseRResponse;
+import edu.wvu.stat.rc2.rworker.response.ErrorRResponse;
+import edu.wvu.stat.rc2.rworker.response.ExecCompleteRResponse;
+import edu.wvu.stat.rc2.rworker.response.HelpRResponse;
+import edu.wvu.stat.rc2.rworker.response.ResultsRResponse;
+import edu.wvu.stat.rc2.rworker.response.ShowOutputRResponse;
+import edu.wvu.stat.rc2.rworker.response.VariableUpdateRResponse;
+import edu.wvu.stat.rc2.rworker.response.VariableValueRResponse;
 
 public class ServerMessageResolverTest {
 	private ObjectMapper _mapper;
@@ -37,9 +37,9 @@ public class ServerMessageResolverTest {
 		jsonObj.put("helpTopic", "print");
 		jsonObj.put("helpPath", Arrays.asList("path1","path2"));
 		final String json = _mapper.writeValueAsString(jsonObj);
-		BaseMessage baseMsg = _mapper.readValue(json, BaseMessage.class);
-		assertThat(baseMsg, instanceOf(HelpMessage.class));
-		HelpMessage msg = (HelpMessage)baseMsg;
+		BaseRResponse baseMsg = _mapper.readValue(json, BaseRResponse.class);
+		assertThat(baseMsg, instanceOf(HelpRResponse.class));
+		HelpRResponse msg = (HelpRResponse)baseMsg;
 		assertThat(msg.getTopic(), is("print"));
 		List<String> paths = msg.getPaths();
 		assertThat(paths.size(), is(2));
@@ -54,9 +54,9 @@ public class ServerMessageResolverTest {
 		jsonObj.put("msg", "results");
 		jsonObj.put("string", results);
 		final String json = _mapper.writeValueAsString(jsonObj);
-		BaseMessage baseMsg = _mapper.readValue(json, BaseMessage.class);
-		assertThat(baseMsg, instanceOf(ResultsMessage.class));
-		ResultsMessage msg = (ResultsMessage)baseMsg;
+		BaseRResponse baseMsg = _mapper.readValue(json, BaseRResponse.class);
+		assertThat(baseMsg, instanceOf(ResultsRResponse.class));
+		ResultsRResponse msg = (ResultsRResponse)baseMsg;
 		assertThat(msg.getString(), is(results));
 	}
 	
@@ -70,9 +70,9 @@ public class ServerMessageResolverTest {
 		jsonObj.put("delta", true);
 		jsonObj.put("variables", vars);
 		final String json = _mapper.writeValueAsString(jsonObj);
-		BaseMessage baseMsg = _mapper.readValue(json, BaseMessage.class);
-		assertThat(baseMsg, instanceOf(VariableUpdateMessage.class));
-		VariableUpdateMessage vuMsg = (VariableUpdateMessage)baseMsg;
+		BaseRResponse baseMsg = _mapper.readValue(json, BaseRResponse.class);
+		assertThat(baseMsg, instanceOf(VariableUpdateRResponse.class));
+		VariableUpdateRResponse vuMsg = (VariableUpdateRResponse)baseMsg;
 		assertThat(vuMsg.isDelta(), is(true));
 		assertThat(vuMsg.getVariables().get("foo"), is("bar"));
 		assertThat(vuMsg.getVariables().get("id"), is(1.2));
@@ -87,9 +87,9 @@ public class ServerMessageResolverTest {
 		jsonObj.put("msg", "variablevalue");
 		jsonObj.put("value", val);
 		final String json = _mapper.writeValueAsString(jsonObj);
-		BaseMessage baseMsg = _mapper.readValue(json, BaseMessage.class);
-		assertThat(baseMsg, instanceOf(VariableValueMessage.class));
-		VariableValueMessage vvMsg = (VariableValueMessage)baseMsg;
+		BaseRResponse baseMsg = _mapper.readValue(json, BaseRResponse.class);
+		assertThat(baseMsg, instanceOf(VariableValueRResponse.class));
+		VariableValueRResponse vvMsg = (VariableValueRResponse)baseMsg;
 		assertThat(vvMsg.getValue().get("type"), is("integer"));
 		assertThat(vvMsg.getValue().get("value"), is(12));
 	}
@@ -104,9 +104,9 @@ public class ServerMessageResolverTest {
 		jsonObj.put("images", imageIds);
 		jsonObj.put("imgBatch", 11);
 		final String json = _mapper.writeValueAsString(jsonObj);
-		BaseMessage baseMsg = _mapper.readValue(json, BaseMessage.class);
-		assertThat(baseMsg, instanceOf(ExecCompleteMessage.class));
-		ExecCompleteMessage execMsg = (ExecCompleteMessage)baseMsg;
+		BaseRResponse baseMsg = _mapper.readValue(json, BaseRResponse.class);
+		assertThat(baseMsg, instanceOf(ExecCompleteRResponse.class));
+		ExecCompleteRResponse execMsg = (ExecCompleteRResponse)baseMsg;
 		assertThat(execMsg.getStartTime(), is(startTime));
 		assertThat(execMsg.getImageIds(), is(imageIds));
 		assertThat(execMsg.getImageBatchId(), is(11));
@@ -115,9 +115,9 @@ public class ServerMessageResolverTest {
 	@Test
 	public void testErrorMessage() throws Exception {
 		final String details = "some details";
-		ErrorMessage error = (ErrorMessage)_mapper.readValue(
+		ErrorRResponse error = (ErrorRResponse)_mapper.readValue(
 				"{\"msg\":\"error\", \"errorCode\":100,\"errorDetails\":\"" + details + "\"}", 
-				ErrorMessage.class);
+				ErrorRResponse.class);
 		assertThat(error.getCode(), is(100));
 		assertThat(error.getDetails(), is(details));
 	}
@@ -125,16 +125,16 @@ public class ServerMessageResolverTest {
 	@Test
 	public void testShowOutputMessage() throws Exception {
 		final int fileId = 121;
-		ShowOutputMessage msg = _mapper.readValue(
+		ShowOutputRResponse msg = _mapper.readValue(
 				"{\"msg\":\"showoutput\",\"fileId\":" + fileId + "}", 
-				ShowOutputMessage.class);
+				ShowOutputRResponse.class);
 		assertThat(msg.getFileId(), is(fileId));
 	}
 	
 	@Test
 	public void testGenericShowOutput() throws Exception {
 		final int fileId = 121;
-		BaseMessage obj = _mapper.readValue("{\"msg\":\"showoutput\",\"fileId\":" + fileId + "}", BaseMessage.class);
-		assertThat(obj, instanceOf(ShowOutputMessage.class));
+		BaseRResponse obj = _mapper.readValue("{\"msg\":\"showoutput\",\"fileId\":" + fileId + "}", BaseRResponse.class);
+		assertThat(obj, instanceOf(ShowOutputRResponse.class));
 	}
 }

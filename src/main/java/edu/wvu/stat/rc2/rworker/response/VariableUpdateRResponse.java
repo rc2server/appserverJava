@@ -5,13 +5,13 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class VariableUpdateMessage extends BaseMessage {
+public class VariableUpdateRResponse extends BaseRResponse {
 	private final Map<String,Object> _variables;
 	private final int _userIdentifier;
 	private final boolean _isDelta;
 	
 	@JsonCreator
-	public VariableUpdateMessage(
+	public VariableUpdateRResponse(
 			@JsonProperty("msg") String msg,
 			@JsonProperty("userIdentifier") int userIdent,
 			@JsonProperty("variables") Map<String,Object> vars,

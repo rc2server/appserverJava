@@ -6,12 +6,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 
-public class HelpMessage extends BaseMessage {
+public class HelpRResponse extends BaseRResponse {
 	private final String _topic;
 	private List<String> _paths;
 	
 	@JsonCreator
-	public HelpMessage(
+	public HelpRResponse(
 			@JsonProperty("msg") String msg,
 			@JsonProperty("helpTopic") String topic,
 			@JsonProperty("helpPath") List<String> paths

@@ -5,12 +5,12 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class VariableValueMessage extends BaseMessage {
+public class VariableValueRResponse extends BaseRResponse {
 	private final Map<String,Object> _value;
 	private final int _userIdentifier;
 	
 	@JsonCreator
-	public VariableValueMessage(
+	public VariableValueRResponse(
 			@JsonProperty("msg") String msg,
 			@JsonProperty("userIdentifier") int userIdent,
 			@JsonProperty("value") Map<String,Object> value)

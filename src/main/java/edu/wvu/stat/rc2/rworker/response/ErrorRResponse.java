@@ -2,11 +2,11 @@ package edu.wvu.stat.rc2.rworker.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public final class ErrorMessage extends BaseMessage {
+public final class ErrorRResponse extends BaseRResponse {
 	private final String _details;
 	private final int _code;
 	
-	public ErrorMessage(@JsonProperty("msg") String msg, 
+	public ErrorRResponse(@JsonProperty("msg") String msg, 
 			@JsonProperty("errorDetails") String details, 
 			@JsonProperty("errorCode") int code) 
 	{

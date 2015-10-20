@@ -8,10 +8,10 @@ import edu.wvu.stat.rc2.rworker.ServerMessageResolver;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, include = JsonTypeInfo.As.PROPERTY, property="msg")
 @JsonTypeIdResolver(ServerMessageResolver.class)
-public abstract class BaseMessage {
+public abstract class BaseRResponse {
 	protected final String _msg;
 	
-	public BaseMessage(@JsonProperty("msg") String msg) {
+	public BaseRResponse(@JsonProperty("msg") String msg) {
 		_msg = msg;
 		
 	}
