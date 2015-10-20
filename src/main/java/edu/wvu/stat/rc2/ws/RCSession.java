@@ -89,15 +89,19 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	}
 	
 	private void handleExecuteRequest(ExecuteRequest request) {
-		
+		if (request.getFileId() > 0) {
+			_rworker.executeScriptFile(request.getFileId());
+		} else {
+			_rworker.executeScript(request.getCode());
+		}
 	}
 
 	private void handleGetVariableRequest(GetVariableRequest request) {
-		
+		_rworker.fetchVariableValue(request.getVariable());
 	}
 
 	private void handleHelpRequest(HelpRequest request) {
-		
+		_rworker.lookupInHelp(request.getTopic());
 	}
 
 	private void handleWatchVariablesRequest(WatchVariablesRequest request) {
@@ -105,7 +109,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	}
 
 	private void handleKeepAliveRequest(KeepAliveRequest request) {
-		
+		//do nothing
 	}
 	
 	private void handleUserListRequest(UserListRequest request) {

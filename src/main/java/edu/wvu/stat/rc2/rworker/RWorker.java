@@ -102,18 +102,16 @@ public class RWorker implements Runnable {
 		}
 	}
 
-	public void executeScript(String scriptCode, Map<String, Object> inCmd) {
-		if (null == inCmd)
-			inCmd = new HashMap<String, Object>();
-		Map<String, Object> cmd = new HashMap<String, Object>(inCmd);
+	public void executeScript(String scriptCode) {
+		Map<String, Object> cmd = new HashMap<String, Object>();
 		cmd.put("msg", "execScript");
 		cmd.put("argument", scriptCode);
 		cmd.put("startTime", Long.toString(System.currentTimeMillis()));
 		_outputQueue.add(serializeJson(cmd));
 	}
 
-	public void executeScriptFile(int fileId, Map<String, Object> inCmd) {
-		Map<String, Object> cmd = new HashMap<String, Object>(inCmd);
+	public void executeScriptFile(int fileId) {
+		Map<String, Object> cmd = new HashMap<String, Object>();
 		cmd.put("msg", "execFile");
 		cmd.put("argument", Integer.toString(fileId));
 		cmd.put("startTime", Long.toString(System.currentTimeMillis()));
@@ -124,20 +122,20 @@ public class RWorker implements Runnable {
 		_outputQueue.add(serializeJson(cmd));
 	}
 
-	public void lookupInHelp(String topic, Map<String, Object> inCmd) {
-		Map<String, Object> cmd = new HashMap<String, Object>(inCmd);
+	public void lookupInHelp(String topic) {
+		Map<String, Object> cmd = new HashMap<String, Object>();
 		cmd.put("msg", "help");
 		cmd.put("argument", topic);
 		_outputQueue.add(serializeJson(cmd));
 	}
 
-	public void fetchVariableValue(String varName, Map<String, Object> inCmd) {
+	public void fetchVariableValue(String varName) {
 		if (varName == null) {
 			// list all variables
 			listVariables(false);
 		} else {
 			// request one variable
-			Map<String, Object> cmd = new HashMap<String, Object>(inCmd);
+			Map<String, Object> cmd = new HashMap<String, Object>();
 			cmd.put("msg", "getVariable");
 			cmd.put("argument", varName);
 			_outputQueue.add(serializeJson(cmd));
@@ -173,6 +171,7 @@ public class RWorker implements Runnable {
 	
 	void handleJsonResponse(String jsonString) {
 		try {
+			log.debug("response:" + jsonString);
 			BaseRResponse bm = _delegate.getObjectMapper().readValue(jsonString, BaseRResponse.class);
 			final String methodName = "handle" + bm.getClass().getSimpleName().replace("RR", "R");
 			Method m = getClass().getDeclaredMethod(methodName, bm.getClass());
@@ -329,6 +328,7 @@ public class RWorker implements Runnable {
 					String msg = _outputQueue.poll(2,
 							TimeUnit.SECONDS);
 					if (msg != null) {
+						log.debug("sending message:" + msg);
 						writeOutMessage(msg);
 					}
 				}
