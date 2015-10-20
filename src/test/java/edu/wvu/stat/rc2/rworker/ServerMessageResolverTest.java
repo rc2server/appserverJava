@@ -13,14 +13,14 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.wvu.stat.rc2.rworker.message.BaseMessage;
-import edu.wvu.stat.rc2.rworker.message.ErrorMessage;
-import edu.wvu.stat.rc2.rworker.message.ExecCompleteMessage;
-import edu.wvu.stat.rc2.rworker.message.HelpMessage;
-import edu.wvu.stat.rc2.rworker.message.ResultsMessage;
-import edu.wvu.stat.rc2.rworker.message.ShowOutputMessage;
-import edu.wvu.stat.rc2.rworker.message.VariableUpdateMessage;
-import edu.wvu.stat.rc2.rworker.message.VariableValueMessage;
+import edu.wvu.stat.rc2.rworker.response.BaseMessage;
+import edu.wvu.stat.rc2.rworker.response.ErrorMessage;
+import edu.wvu.stat.rc2.rworker.response.ExecCompleteMessage;
+import edu.wvu.stat.rc2.rworker.response.HelpMessage;
+import edu.wvu.stat.rc2.rworker.response.ResultsMessage;
+import edu.wvu.stat.rc2.rworker.response.ShowOutputMessage;
+import edu.wvu.stat.rc2.rworker.response.VariableUpdateMessage;
+import edu.wvu.stat.rc2.rworker.response.VariableValueMessage;
 
 public class ServerMessageResolverTest {
 	private ObjectMapper _mapper;

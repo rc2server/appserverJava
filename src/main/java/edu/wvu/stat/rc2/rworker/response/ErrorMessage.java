@@ -1,4 +1,4 @@
-package edu.wvu.stat.rc2.rworker.message;
+package edu.wvu.stat.rc2.rworker.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

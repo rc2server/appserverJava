@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
-import edu.wvu.stat.rc2.rworker.message.BaseMessage;
+import edu.wvu.stat.rc2.rworker.response.BaseMessage;
 
 public class ServerMessageResolver extends TypeIdResolverBase {
 	public enum Messages {
