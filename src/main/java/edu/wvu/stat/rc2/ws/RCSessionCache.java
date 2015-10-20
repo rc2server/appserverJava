@@ -68,7 +68,7 @@ public class RCSessionCache implements Managed {
 		synchronized (_sessionMap) {
 			session = _sessionMap.get(wspaceId);
 			if (null == session) {
-				session = new RCSession(_dbfactory, _mapper, wspaceId);
+				session = new RCSession(_dbfactory, _mapper, wspaceId, null);
 				_sessionMap.put(wspaceId, session);
 			}
 		}

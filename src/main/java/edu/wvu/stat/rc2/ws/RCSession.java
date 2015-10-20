@@ -49,8 +49,9 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	 @param dbfactory A factory is passed so that if the connection is dropped for some reason, a new one can be opened.
 	 @param workspace The workspace this session represents.
 	 @param mapper An object mapper to use for json conversion. If null, a generic mapper will be created.
+	 @param rworker The rworker to use. If null, one will be created.
 	 */
-	RCSession(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, int wspaceId) {
+	RCSession(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, int wspaceId, RWorker rworker) {
 		_dbfactory = dbfactory;
 		_mapper = mapper;
 		if (null == _mapper)
@@ -63,7 +64,9 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		_webSockets = new ArrayList<RCSessionSocket>();
 		_startTime = System.currentTimeMillis();
 		
-		_rworker = new RWorker(new RWorker.SocketFactory(), this);
+		_rworker = rworker;
+		if (null == _rworker)
+			_rworker = new RWorker(new RWorker.SocketFactory(), this);
 		
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
 		_sessionId = srecDao.createSessionRecord(_wspace.getId());
@@ -89,19 +92,23 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		
 	}
 
-	private void handleExecuteScriptFile(Map<String,Object> cmdObj, RCSessionSocket socket) {
+	private void handleGetVariableRequest(GetVariableRequest request) {
 		
 	}
 
-	private void handleSessionList(Map<String,Object> cmdObj, RCSessionSocket socket) {
+	private void handleHelpRequest(HelpRequest request) {
 		
 	}
 
-	private void handleWatchVariables(Map<String,Object> cmdObj, RCSessionSocket socket) {
+	private void handleWatchVariablesRequest(WatchVariablesRequest request) {
 		
 	}
 
-	private void handleGetVariable(Map<String,Object> cmdObj, RCSessionSocket socket) {
+	private void handleKeepAliveRequest(KeepAliveRequest request) {
+		
+	}
+	
+	private void handleUserListRequest(UserListRequest request) {
 		
 	}
 

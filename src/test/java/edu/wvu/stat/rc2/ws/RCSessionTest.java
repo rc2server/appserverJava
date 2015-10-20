@@ -48,7 +48,7 @@ public class RCSessionTest {
 	@Test
 	public void testInvalidWorkspace() {
 		try {
-			new RCSession(_dbfactory, null, 10111131);
+			new RCSession(_dbfactory, null, 10111131, null);
 			fail("failed to throw illegalArgumentException");
 		} catch (IllegalArgumentException e) {
 			//what we expected
@@ -58,7 +58,7 @@ public class RCSessionTest {
 	@Test
 	public void testValidWorkspace() throws IOException {
 		RCUser user = Rc2CommonMocks.mockTestUser();
-		RCSession session = new RCSession(_dbfactory, null, _wspace.getId());
+		RCSession session = new RCSession(_dbfactory, null, _wspace.getId(), null);
 		assertThat(session.getWorkspaceId(), is(1));
 
 		HttpServletRequest httpRequest = mock(HttpServletRequest.class);
