@@ -67,6 +67,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		_rworker = rworker;
 		if (null == _rworker)
 			_rworker = new RWorker(new RWorker.SocketFactory(), this);
+		new Thread(_rworker).start();
 		
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
 		_sessionId = srecDao.createSessionRecord(_wspace.getId());

@@ -240,11 +240,11 @@ public class RWorker implements Runnable {
 				_in = _socket.getInputStream();
 				_out = _socket.getOutputStream();
 				RWorkerInputThread ith = new RWorkerInputThread();
-				ith.start();
 				RWorkerOutputThread oth = new RWorkerOutputThread();
+				_shouldBeRunning = true;
+				ith.start();
 				oth.start();
 			}
-			_shouldBeRunning = true;
 			Map<String, Object> jo = new HashMap<String, Object>();
 			jo.put("msg", "open");
 			jo.put("argument", "");

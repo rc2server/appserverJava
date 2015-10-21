@@ -91,6 +91,7 @@ public final class RCSessionSocket {
 	
 	@OnWebSocketMessage
 	public void onMessage(String data) {
+		log.info("got message:" + data);
 		_delegate.processWebsocketMessage(this, data);
 	}
 
