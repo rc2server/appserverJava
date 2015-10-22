@@ -3,8 +3,10 @@ package edu.wvu.stat.rc2.rworker.response;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ExecCompleteRResponse extends BaseRResponse {
 	private final long _startTime;
 	private final int _imgBatchId;

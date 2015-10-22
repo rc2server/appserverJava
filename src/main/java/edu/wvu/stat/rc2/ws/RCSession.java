@@ -27,7 +27,7 @@ import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 //TODO: add shutdown hook for rworker
-//		Runtime.getRuntime().addShutdownHook(new Thread(() -> _rworker.shutdown()));
+//		handle prematurely closed websocket
 
 
 @SuppressWarnings("unused")
@@ -67,7 +67,10 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		_rworker = rworker;
 		if (null == _rworker)
 			_rworker = new RWorker(new RWorker.SocketFactory(), this);
-		new Thread(_rworker).start();
+		Thread rwt = new Thread(_rworker);
+		rwt.setName("rworker " + wspaceId);
+		rwt.start();
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> _rworker.shutdown()));
 		
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
 		_sessionId = srecDao.createSessionRecord(_wspace.getId());
@@ -85,6 +88,8 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	
 	
 	void shutdown() {
+		log.info("session shutting down");
+		_rworker.shutdown();
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
 		srecDao.closeSessionRecord(_sessionId);
 	}

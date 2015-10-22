@@ -3,9 +3,11 @@ package edu.wvu.stat.rc2.rworker.response;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class HelpRResponse extends BaseRResponse {
 	private final String _topic;
 	private List<String> _paths;
@@ -13,8 +15,8 @@ public class HelpRResponse extends BaseRResponse {
 	@JsonCreator
 	public HelpRResponse(
 			@JsonProperty("msg") String msg,
-			@JsonProperty("helpTopic") String topic,
-			@JsonProperty("helpPath") List<String> paths
+			@JsonProperty("topic") String topic,
+			@JsonProperty("paths") List<String> paths
 		)
 	{
 		super(msg);

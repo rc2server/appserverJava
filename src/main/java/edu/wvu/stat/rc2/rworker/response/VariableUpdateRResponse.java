@@ -3,8 +3,10 @@ package edu.wvu.stat.rc2.rworker.response;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class VariableUpdateRResponse extends BaseRResponse {
 	private final Map<String,Object> _variables;
 	private final int _userIdentifier;

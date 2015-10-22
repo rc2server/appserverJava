@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +201,15 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleHelpResponse(HelpRResponse msg) {
-		HelpResponse rsp = new HelpResponse(msg.getTopic(), msg.getPaths());
+		ArrayList<String> outPaths = new ArrayList<String>();
+		for (String aPath : msg.getPaths()) {
+			int loc = aPath.indexOf("/library/");
+			String modPath = aPath.substring(loc+1);
+			modPath = modPath.replace("/help/", "/html/");
+			modPath = "http://www.stat.wvu.edu/rc2/" + modPath + ".html";
+			outPaths.add(modPath);
+		}
+		HelpResponse rsp = new HelpResponse(msg.getTopic(), outPaths);
 		getDelegate().broadcastToAllClients(rsp);
 	}
 
@@ -230,6 +239,11 @@ public class RWorker implements Runnable {
 			getDelegate().broadcastToAllClients(rsp);
 	}
 
+	@SuppressWarnings("unused") //dynamically called
+	private void handleOpenSuccessResponse(OpenSuccessRResponse rsp) {
+		
+	}
+	
 	@Override
 	public void run() {
 		_shouldBeRunning = true;
@@ -241,6 +255,8 @@ public class RWorker implements Runnable {
 				_out = _socket.getOutputStream();
 				RWorkerInputThread ith = new RWorkerInputThread();
 				RWorkerOutputThread oth = new RWorkerOutputThread();
+				ith.setName("rworker " + _delegate.getWorkspaceId() + " input thread");
+				oth.setName("rworker " + _delegate.getWorkspaceId() + " output thread");
 				_shouldBeRunning = true;
 				ith.start();
 				oth.start();
@@ -332,6 +348,7 @@ public class RWorker implements Runnable {
 						writeOutMessage(msg);
 					}
 				}
+				log.info("rworker.output thread ending");
 			} catch (Exception e) {
 				if (null != _delegate && e instanceof SocketException) {
 					_delegate.connectionFailed(e);

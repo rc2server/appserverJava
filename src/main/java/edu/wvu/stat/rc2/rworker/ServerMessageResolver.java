@@ -1,5 +1,8 @@
 package edu.wvu.stat.rc2.rworker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
@@ -9,6 +12,8 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import edu.wvu.stat.rc2.rworker.response.BaseRResponse;
 
 public class ServerMessageResolver extends TypeIdResolverBase {
+	static final Logger log = LoggerFactory.getLogger("rc2.RCSession");
+
 	public enum Messages {
 		EXEC_COMPLETE_MSG ("execComplete"),
 		RESULTS_MSG ("results"),
@@ -16,6 +21,7 @@ public class ServerMessageResolver extends TypeIdResolverBase {
 		SHOW_OUTPUT_MSG ("showoutput"),
 		VAR_UPDATE_MSG ("variableupdate"),
 		VAR_VALUE_MSG ("variablevalue"),
+		OPENSUCCESS_MSG ("opensuccess"),
 		HELP_MSG ("help");
 		
 		public final String jsonValue;
@@ -77,8 +83,13 @@ public class ServerMessageResolver extends TypeIdResolverBase {
 			case HELP_MSG:
 				typeClass = "HelpRResponse";
 				break;
+			case OPENSUCCESS_MSG:
+				typeClass = "OpenSuccessRResponse";
+				break;
 			default:
-				throw new IllegalStateException("cannot handle message of type '" + type + "'");
+				typeClass = "BaseRResponse";
+				log.warn("unknown response type:" + type);
+				break;
 		}
 		Class<?> clazz;
 		String clazzName = MESSAGE_PREFIX + "." + typeClass;
