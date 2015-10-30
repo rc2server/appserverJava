@@ -1,5 +1,6 @@
 package edu.wvu.stat.rc2.rworker;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,7 +37,7 @@ public class RWorker implements Runnable {
 	private final Delegate _delegate;
 	private Socket _socket;
 	private OutputStream _out;
-	private InputStream _in;
+	private DataInputStream _in;
 	private boolean _watchingVariables;
 	private volatile boolean _shouldBeRunning;
 	final ArrayBlockingQueue<String> _outputQueue;
@@ -251,7 +252,7 @@ public class RWorker implements Runnable {
 			synchronized (this) {
 				_socket = _socketFactory.createSocket();
 				log.info("rworker connected");
-				_in = _socket.getInputStream();
+				_in = new DataInputStream(_socket.getInputStream());
 				_out = _socket.getOutputStream();
 				RWorkerInputThread ith = new RWorkerInputThread();
 				RWorkerOutputThread oth = new RWorkerOutputThread();
@@ -303,24 +304,17 @@ public class RWorker implements Runnable {
 				IntBuffer buf = ByteBuffer.wrap(header).asIntBuffer();
 				byte[] genericBuffer = new byte[4096];
 				while (_shouldBeRunning) {
-					int readCount = _in.read(header, 0, 8);
-					if (readCount != 8) {
-						log.warn("read got EOF mid header");
-						return;
-					}
+					_in.readFully(header, 0, 8);
 					if (buf.get(0) != MAGIC_IDENT) {
 						log.warn("got invalid magic number:" + buf.get(0));
 						continue;
 					}
 					int bufSize = buf.get(1);
+					log.info("got rbuffer:" + bufSize);
 					// if less than 4K, use a static buffer instead of
 					// constantly alloc'ing new buffers
 					byte[] jsonBuffer = bufSize < genericBuffer.length ? genericBuffer : new byte[bufSize];
-					readCount = _in.read(jsonBuffer, 0, bufSize);
-					if (readCount != bufSize) {
-						log.warn("failed to read correct number of bytes");
-						continue;
-					}
+					_in.readFully(jsonBuffer, 0, bufSize);
 					String json = new String(jsonBuffer, 0, bufSize,
 							Charset.forName("UTF-8"));
 					handleJsonResponse(json);
