@@ -1,8 +1,8 @@
 package edu.wvu.stat.rc2.rworker;
 
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.Socket;
@@ -38,6 +38,7 @@ public class RWorker implements Runnable {
 	private Socket _socket;
 	private OutputStream _out;
 	private DataInputStream _in;
+	private int _nextQueryId;
 	private boolean _watchingVariables;
 	private volatile boolean _shouldBeRunning;
 	final ArrayBlockingQueue<String> _outputQueue;
@@ -54,6 +55,7 @@ public class RWorker implements Runnable {
 		_socketFactory = socketFactory;
 		_delegate = delegate;
 		_outputQueue = new ArrayBlockingQueue<String>(OUT_QUEUE_SIZE);
+		_nextQueryId = 1001;
 }
 	
 	public Delegate getDelegate() { return _delegate; }
@@ -105,23 +107,29 @@ public class RWorker implements Runnable {
 	}
 
 	public void executeScript(String scriptCode) {
+		int queryId = _nextQueryId++;
 		Map<String, Object> cmd = new HashMap<String, Object>();
 		cmd.put("msg", "execScript");
 		cmd.put("argument", scriptCode);
+		cmd.put("queryId", queryId);
 		cmd.put("startTime", Long.toString(System.currentTimeMillis()));
 		_outputQueue.add(serializeJson(cmd));
+		getDelegate().broadcastToAllClients(new EchoQueryResponse(queryId, 0, scriptCode));
 	}
 
 	public void executeScriptFile(int fileId) {
+		int queryId = _nextQueryId++;
 		Map<String, Object> cmd = new HashMap<String, Object>();
 		cmd.put("msg", "execFile");
 		cmd.put("argument", Integer.toString(fileId));
 		cmd.put("startTime", Long.toString(System.currentTimeMillis()));
+		cmd.put("queryId", queryId);
 		Map<String, Object> clientData = new HashMap<String, Object>();
 		clientData.put("fileId", fileId);
 		cmd.put("clientData", clientData);
 		log.info("sending file cmd:" + cmd);
 		_outputQueue.add(serializeJson(cmd));
+		getDelegate().broadcastToAllClients(new EchoQueryResponse(queryId, fileId, ""));
 	}
 
 	public void lookupInHelp(String topic) {
@@ -196,7 +204,7 @@ public class RWorker implements Runnable {
 		if (batchId > 0) {
 			images = getDelegate().getDAO().findImageBatchById(batchId);
 		}
-		ExecCompleteResponse rsp = new ExecCompleteResponse(batchId , images);
+		ExecCompleteResponse rsp = new ExecCompleteResponse(batchId , images, msg.getQueryId());
 		getDelegate().broadcastToAllClients(rsp);
 	}
 
@@ -216,12 +224,12 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleResultsResponse(ResultsRResponse msg) {
-		getDelegate().broadcastToAllClients(new ResultsResponse(msg.getString(), 0));
+		getDelegate().broadcastToAllClients(new ResultsResponse(msg.getString(), 0, msg.getQueryId()));
 	}
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleShowOutputResponse(ShowOutputRResponse msg) {
-		getDelegate().broadcastToAllClients(new ResultsResponse("", msg.getFileId()));
+		getDelegate().broadcastToAllClients(new ResultsResponse("", msg.getFileId(), msg.getQueryId()));
 	}
 
 	@SuppressWarnings("unused") //dynamically called
@@ -310,7 +318,6 @@ public class RWorker implements Runnable {
 						continue;
 					}
 					int bufSize = buf.get(1);
-					log.info("got rbuffer:" + bufSize);
 					// if less than 4K, use a static buffer instead of
 					// constantly alloc'ing new buffers
 					byte[] jsonBuffer = bufSize < genericBuffer.length ? genericBuffer : new byte[bufSize];
@@ -323,7 +330,7 @@ public class RWorker implements Runnable {
 				if (null != _delegate && e instanceof SocketException) {
 					_delegate.connectionFailed(e);
 				} else {
-					if (!e.getMessage().contains("Socket closed"))
+					if (!(e instanceof EOFException) && !e.getMessage().contains("Socket closed"))
 						log.warn("exception in input thread", e);
 				}
 			}
