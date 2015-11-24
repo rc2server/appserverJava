@@ -64,6 +64,10 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		_webSockets = new ArrayList<RCSessionSocket>();
 		_startTime = System.currentTimeMillis();
 		
+		//must generate before rworker thread is started
+		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
+		_sessionId = srecDao.createSessionRecord(_wspace.getId());
+
 		_rworker = rworker;
 		if (null == _rworker)
 			_rworker = new RWorker(new RWorker.SocketFactory(), this);
@@ -71,9 +75,6 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		rwt.setName("rworker " + wspaceId);
 		rwt.start();
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> _rworker.shutdown()));
-		
-		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
-		_sessionId = srecDao.createSessionRecord(_wspace.getId());
 	}
 
 	//RCSessionSocket.Delegate
