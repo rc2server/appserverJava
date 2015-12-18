@@ -103,6 +103,7 @@ public class WorkspaceResource extends BaseResource {
 	}
 	
 	@PUT
+	@Path("{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public RCWorkspace updateWorkspace(@Valid WorkspacePutInput input) {
 		RCWorkspace wspace = getDAO().findWorkspaceById(input.getId());
