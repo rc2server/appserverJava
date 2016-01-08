@@ -106,6 +106,9 @@ public class WorkspaceResource extends BaseResource {
 	@Path("{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public RCWorkspace updateWorkspace(@Valid WorkspacePutInput input) {
+		RCWorkspace existing = getDAO().getWorkspaceDao().findByName(input.getName());
+		if (existing != null)
+			throwCustomRestError(RCRestError.DuplicateName, "workspace");
 		RCWorkspace wspace = getDAO().findWorkspaceById(input.getId());
 		checkWorkspacePermissions(wspace);
 		int upcount = getDAO().getWorkspaceDao().updateWorkspace(input.getId(), input.getName());
