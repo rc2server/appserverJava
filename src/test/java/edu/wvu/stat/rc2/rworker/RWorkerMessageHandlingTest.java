@@ -99,18 +99,19 @@ public class RWorkerMessageHandlingTest {
 	
 	@Test
 	public void testHelpMessage() throws Exception {
-		final List<String> paths = Arrays.asList("foo/bar", "foo/baz");
+		final List<String> paths = Arrays.asList("/rc2/library/foo/bar.html", "/rc2/library/foo/baz.html");
 		final String topic = "print";
 		HashMap<String,Object> msg = new HashMap<String,Object>();
 		msg.put("msg", Messages.HELP_MSG.jsonValue);
-		msg.put("helpTopic", topic);
-		msg.put("helpPath", paths);
+		msg.put("topic", topic);
+		msg.put("paths", paths);
 		worker.handleJsonResponse(delegate.getObjectMapper().writeValueAsString(msg));
 		assertThat(delegate.messagesBroadcast.size(), is(1));
 		assertThat(delegate.messagesBroadcast.get(0), instanceOf(HelpResponse.class));
 		HelpResponse rsp = (HelpResponse)delegate.messagesBroadcast.get(0);
 		assertThat(rsp.getTopic(), is(topic));
-		assertThat(rsp.getPaths(), is(paths));
+		assertThat(rsp.getTopic(), is(topic));
+		assertThat(rsp.getItems().get(0).get("title"), is("bar (library)"));
 	}
 	
 	@Test

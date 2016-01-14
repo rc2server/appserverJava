@@ -210,15 +210,22 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleHelpResponse(HelpRResponse msg) {
-		ArrayList<String> outPaths = new ArrayList<String>();
+		ArrayList<Map<String,String>> outItems = new ArrayList<Map<String,String>>();
 		for (String aPath : msg.getPaths()) {
+			Map<String,String> helpItem = new HashMap<String,String>();
 			int loc = aPath.indexOf("/library/");
 			String modPath = aPath.substring(loc+1);
 			modPath = modPath.replace("/help/", "/html/");
 			modPath = "http://www.stat.wvu.edu/rc2/" + modPath + ".html";
-			outPaths.add(modPath);
+			helpItem.put("path", modPath);
+			String[] components = aPath.split("/");
+			String funName = components[components.length-1];
+			funName = funName.substring(0, funName.lastIndexOf('.'));
+			String pkgName = components.length > 3 ? components[components.length-3] : "Base";
+			helpItem.put("title", funName + " (" + pkgName + ")");
+			outItems.add(helpItem);
 		}
-		HelpResponse rsp = new HelpResponse(msg.getTopic(), outPaths);
+		HelpResponse rsp = new HelpResponse(msg.getTopic(), outItems);
 		getDelegate().broadcastToAllClients(rsp);
 	}
 
