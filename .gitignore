@@ -4,3 +4,9 @@
 .classpath
 logs
 /.apt_generated/
+
+.gradle
+build
+gradlew.bat
+/bin/
+

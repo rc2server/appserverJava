@@ -1,6 +1,4 @@
 server:
-  gzip:
-    enabled: true #not sure this is working
   applicationConnectors:
     - type: http
       port: 8088
