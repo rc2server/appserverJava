@@ -32,12 +32,12 @@ public class Rc2DAO {
 		return getWorkspaceDao().findById(wsid);
 	}
 	
-	public RCSessionImage findImageById(int batchId) {
-		return getSessionImageDao().findById(batchId);
+	public RCSessionImage findImageById(int imageId) {
+		return getSessionImageDao().findById(imageId);
 	}
 
-	public List<RCSessionImage> findImageBatchById(int batchId) {
-		return getSessionImageDao().findByBatchId(batchId);
+	public List<RCSessionImage> findImageBatchById(int batchId, int sessionId) {
+		return getSessionImageDao().findByBatchId(batchId, sessionId);
 	}
 	
 	//uses double check idiom for fast performance (25x over synchronized)

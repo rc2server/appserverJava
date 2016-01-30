@@ -123,7 +123,7 @@ public class RWorkerMessageHandlingTest {
 				RCSessionImage.create(102, delegate.sessionRecordId, batchId, 1, "bar.png", new Date(), imgData)
 			);
 		delegate.dao = mock(Rc2DAO.class);
-		when(delegate.dao.findImageBatchById(batchId)).thenReturn(fakeImages);
+		when(delegate.dao.findImageBatchById(batchId, delegate.getSessionRecordId())).thenReturn(fakeImages);
 		
 		HashMap<String,Object> msg = new HashMap<String,Object>();
 		msg.put("msg", Messages.EXEC_COMPLETE_MSG.jsonValue);

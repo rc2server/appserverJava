@@ -62,8 +62,8 @@ public abstract class RCSessionImage {
 
 		@SqlQuery("select img.id as \"id\", img.sessionId as \"sessionId\", rec.wspaceid as \"wspaceId\", batchId, " +
 				"name, dateCreated, imgdata from sessionimage img join sessionrecord rec on img.sessionid = rec.id " +
-				"where img.batchid = :batchid")
+				"where img.batchid = :batchid and img.sessionid = :sessionId")
 		@Mapper(RCSessionImageMapper.class)
-		List<RCSessionImage> findByBatchId(@Bind("batchid") int batchid);
-}
+		List<RCSessionImage> findByBatchId(@Bind("batchid") int batchid, @Bind("sessionId") int sessionId);
+	}
 }

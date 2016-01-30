@@ -60,7 +60,7 @@ public class RCSessionImageTest {
 			}
 		});
 		assertThat(_imgId, is(greaterThan(0)));
-		List<RCSessionImage> img = _dao.getSessionImageDao().findByBatchId(101);
+		List<RCSessionImage> img = _dao.getSessionImageDao().findByBatchId(101, _sessionId);
 		assertThat(img.size(), is(1));
 		assertThat(img.get(0).getName(), is("image.png"));
 		assertThat(img.get(0).getImageData(), is(imgData));

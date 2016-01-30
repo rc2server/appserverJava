@@ -202,7 +202,8 @@ public class RWorker implements Runnable {
 		int batchId = msg.getImageBatchId();
 		List<RCSessionImage> images=null;
 		if (batchId > 0) {
-			images = getDelegate().getDAO().findImageBatchById(batchId);
+			log.info("getting images from batch " + batchId + ", sessionId " + _delegate.getSessionRecordId());
+			images = getDelegate().getDAO().findImageBatchById(batchId, _delegate.getSessionRecordId());
 		}
 		ExecCompleteResponse rsp = new ExecCompleteResponse(batchId , images, msg.getQueryId());
 		getDelegate().broadcastToAllClients(rsp);
