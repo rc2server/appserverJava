@@ -31,7 +31,8 @@ import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 
 @SuppressWarnings("unused")
-public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delegate {
+public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delegate, Rc2DataSourceFactory.NotificationListener
+{
 	static final Logger log = LoggerFactory.getLogger("rc2.RCSession");
 
 	private final Rc2DataSourceFactory _dbfactory;
@@ -51,7 +52,8 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	 @param mapper An object mapper to use for json conversion. If null, a generic mapper will be created.
 	 @param rworker The rworker to use. If null, one will be created.
 	 */
-	RCSession(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, int wspaceId, RWorker rworker) {
+	RCSession(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, int wspaceId, RWorker rworker) 
+	{
 		_dbfactory = dbfactory;
 		_mapper = mapper;
 		if (null == _mapper)
@@ -71,6 +73,8 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		_rworker = rworker;
 		if (null == _rworker)
 			_rworker = new RWorker(new RWorker.SocketFactory(), this);
+		else
+			_rworker.setDelegate(this);
 		Thread rwt = new Thread(_rworker);
 		rwt.setName("rworker " + wspaceId);
 		rwt.start();
@@ -93,6 +97,37 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		_rworker.shutdown();
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
 		srecDao.closeSessionRecord(_sessionId);
+	}
+	
+	@Override
+	public void handleNotification(String channelName, String message) {
+		if (!channelName.equals("rcfile") || message.length() < 2)
+			return;
+		String[] parts = message.split("/");
+		int fid = Integer.parseInt(parts[0].substring(1));
+		switch(message.charAt(0)) {
+			case 'd':
+				fileDeleted(fid);
+				break;
+			case 'i':
+				fileInserted(fid);
+				break;
+			case 'u':
+				fileUpdated(fid);
+				break;
+		}
+	}
+	
+	void fileDeleted(int fid) {
+		
+	}
+	
+	void fileInserted(int fid) {
+		
+	}
+	
+	void fileUpdated(int fid) {
+		
 	}
 	
 	private void handleExecuteRequest(ExecuteRequest request) {

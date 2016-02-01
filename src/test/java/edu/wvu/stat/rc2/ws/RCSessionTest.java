@@ -6,6 +6,8 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,6 +26,7 @@ import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
+import edu.wvu.stat.rc2.rworker.RWorker;
 
 public class RCSessionTest {
 	Rc2DataSourceFactory _dbfactory;
@@ -58,7 +61,7 @@ public class RCSessionTest {
 	@Test
 	public void testValidWorkspace() throws IOException {
 		RCUser user = Rc2CommonMocks.mockTestUser();
-		RCSession session = new RCSession(_dbfactory, null, _wspace.getId(), null);
+		RCSession session = new RCSession(_dbfactory, null, _wspace.getId(), new RWorker(new MockSocketFactory(), null));
 		assertThat(session.getWorkspaceId(), is(1));
 
 		HttpServletRequest httpRequest = mock(HttpServletRequest.class);
@@ -75,5 +78,17 @@ public class RCSessionTest {
 		
 		socket.onOpen(mockSession);
 		assertThat(session.getClientCount(), is(1));
+		try {
+			session.shutdown();
+			Thread.sleep(200);
+		} catch (Throwable e) {
+		}
+	}
+
+	class MockSocketFactory extends RWorker.SocketFactory {
+		Socket mockSocket = mock(Socket.class);
+		public Socket createSocket(String host, int port) throws UnknownHostException, IOException {
+			return mockSocket;
+		}
 	}
 }

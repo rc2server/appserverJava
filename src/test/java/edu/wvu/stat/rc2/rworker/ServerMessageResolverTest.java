@@ -34,12 +34,13 @@ public class ServerMessageResolverTest {
 	public void testHelp() throws Exception {
 		HashMap<String,Object> jsonObj = new HashMap<String,Object>();
 		jsonObj.put("msg", "help");
-		jsonObj.put("helpTopic", "print");
-		jsonObj.put("helpPath", Arrays.asList("path1","path2"));
+		jsonObj.put("topic", "print");
+		jsonObj.put("paths", Arrays.asList("path1","path2"));
 		final String json = _mapper.writeValueAsString(jsonObj);
 		BaseRResponse baseMsg = _mapper.readValue(json, BaseRResponse.class);
 		assertThat(baseMsg, instanceOf(HelpRResponse.class));
 		HelpRResponse msg = (HelpRResponse)baseMsg;
+		assertThat(msg, is(not(nullValue())));
 		assertThat(msg.getTopic(), is("print"));
 		List<String> paths = msg.getPaths();
 		assertThat(paths.size(), is(2));

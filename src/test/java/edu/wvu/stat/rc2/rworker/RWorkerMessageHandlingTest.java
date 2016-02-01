@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,6 +34,11 @@ public class RWorkerMessageHandlingTest {
 		this.worker = new RWorker(null, this.delegate);
 	}
 
+	@After
+	public void tearDown() throws Exception {
+		this.worker.shutdown();
+	}
+	
 	@Test 
 	public void testVariableValueMessage() throws Exception {
 		this.delegate.socketId = 11;

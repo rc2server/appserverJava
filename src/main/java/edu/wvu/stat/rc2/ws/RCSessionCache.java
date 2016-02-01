@@ -12,6 +12,7 @@ import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
+import edu.wvu.stat.rc2.rworker.RWorker;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import io.dropwizard.lifecycle.Managed;
 
@@ -19,12 +20,21 @@ public class RCSessionCache implements Managed {
 	private final ConcurrentHashMap<Number, RCSession> _sessionMap;
 	private final Rc2DataSourceFactory _dbfactory;
 	private final ObjectMapper _mapper;
+	private final RWorkerFactory _workerFactory;
 	private CleanupTask _cleanupTask;
 	
 	public RCSessionCache(Rc2DataSourceFactory dbfactory, ObjectMapper mapper) {
+		this(dbfactory, mapper, null);
+	}
+	
+	public RCSessionCache(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, RWorkerFactory wfactory) 
+	{
 		_sessionMap = new ConcurrentHashMap<Number, RCSession>();
 		_dbfactory = dbfactory;
 		_mapper = mapper;
+		if (null == wfactory)
+			wfactory = new RWorkerFactory(new RWorker.SocketFactory());
+		_workerFactory = wfactory;
 	}
 	
 	public ObjectMapper getObjectMapper() { return _mapper; }
@@ -63,17 +73,30 @@ public class RCSessionCache implements Managed {
 		@param user the user requesting to connect to the specified workspace
 		@return a websocket connected to the requested session
 	 */
-	public RCSessionSocket socketForWorkspaceAndUser(ServletUpgradeRequest req, int wspaceId, RCUser user) {
+	public RCSessionSocket socketForWorkspaceAndUser(ServletUpgradeRequest req, int wspaceId, RCUser user) 
+	{
 		RCSession session=null;
 		synchronized (_sessionMap) {
 			session = _sessionMap.get(wspaceId);
 			if (null == session) {
-				session = new RCSession(_dbfactory, _mapper, wspaceId, null);
+				session = new RCSession(_dbfactory, _mapper, wspaceId, _workerFactory.createWorker());
 				_sessionMap.put(wspaceId, session);
 			}
 		}
 		RCSessionSocket socket = new RCSessionSocket(req, session, getObjectMapper(), user);
 		return socket;
+	}
+	
+	/** factory to allow injection of rworker to create session with */
+	public static class RWorkerFactory {
+		private RWorker.SocketFactory _sfactory;
+		public RWorkerFactory(RWorker.SocketFactory sfactory) {
+			_sfactory = sfactory; 
+		}
+		
+		public RWorker createWorker() {
+			return new RWorker(_sfactory, null);
+		}
 	}
 	
 	private final class CleanupTask implements Runnable {

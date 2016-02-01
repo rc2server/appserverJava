@@ -34,7 +34,7 @@ public class RWorker implements Runnable {
 	private static final int OUT_QUEUE_SIZE = 20;
 
 	private final SocketFactory _socketFactory;
-	private final Delegate _delegate;
+	private Delegate _delegate;
 	private Socket _socket;
 	private OutputStream _out;
 	private DataInputStream _in;
@@ -44,6 +44,7 @@ public class RWorker implements Runnable {
 	final ArrayBlockingQueue<String> _outputQueue;
 
 	public RWorker(SocketFactory socketFactory, Delegate delegate) {
+		//new Exception().printStackTrace();
 		//create a default socket factory if one was not passed to us
 		if (null == socketFactory) {
 			try { 
@@ -59,6 +60,11 @@ public class RWorker implements Runnable {
 }
 	
 	public Delegate getDelegate() { return _delegate; }
+	public void setDelegate(Delegate d) {
+		if (null != _socket)
+			throw new RuntimeException("can't set delegate once start has been called");
+		_delegate = d;
+	}
 
 	public boolean getWatchingVariables() { return _watchingVariables; }
 	public void setWatchingVariables(boolean watch) {
@@ -263,6 +269,8 @@ public class RWorker implements Runnable {
 	
 	@Override
 	public void run() {
+		if (_delegate == null)
+			throw new RuntimeException("can't start when delegate not set");
 		_shouldBeRunning = true;
 		try {
 			synchronized (this) {
@@ -373,8 +381,8 @@ public class RWorker implements Runnable {
 	 	allows abstraction of socket creation (i.e. mocking for unit tests
 	 */
 	public static class SocketFactory {
-		private String _host;
-		private int _port;
+		protected String _host;
+		protected int _port;
 		public SocketFactory() {
 			this("localhost", 7714);
 		}
