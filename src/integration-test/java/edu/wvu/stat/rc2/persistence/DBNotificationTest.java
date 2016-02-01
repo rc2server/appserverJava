@@ -9,13 +9,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
-import edu.wvu.stat.rc2.RCIntegrationTest;
-
-@Category(RCIntegrationTest.class)
 public class DBNotificationTest {
 	volatile String _lastMessage;
 	

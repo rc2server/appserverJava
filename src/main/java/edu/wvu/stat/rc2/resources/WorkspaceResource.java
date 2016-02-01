@@ -61,11 +61,15 @@ public class WorkspaceResource extends BaseResource {
 	
 	@Path("{id}/images/{iid}")
 	@GET
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	@Produces("image/png")
 	public Response getImage(@PathParam("id") int wspaceId, @PathParam("iid") int imageId) {
 		RCWorkspace wspace = getDAO().findWorkspaceById(wspaceId);
 		checkWorkspacePermissions(wspace);
 		RCSessionImage img = getDAO().findImageById(imageId);
+		if (null == img) {
+			log.warn("failed to find image " + imageId);
+			return Response.status(Response.Status.NOT_FOUND).build();
+		}
 		if (img.getWorkspaceId() != wspaceId) {
 			throw new WebApplicationException(Response.Status.FORBIDDEN);
 		}

@@ -18,17 +18,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.google.common.io.ByteStreams;
 
 import edu.wvu.stat.rc2.RCCustomError;
-import edu.wvu.stat.rc2.RCIntegrationTest;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import io.dropwizard.testing.junit.ResourceTestRule;
 
-@Category(RCIntegrationTest.class)
 public class WorkspaceResourceTest extends BaseResourceTest {
 
 	@ClassRule
@@ -80,6 +77,7 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 		assertThat(ws.getId(), greaterThan(0));
 		try {
 			//try an update
+			target = resources.client().target("/workspaces/1");
 			WorkspaceResource.WorkspacePutInput update = new WorkspaceResource.WorkspacePutInput(ws.getId(), "doofus123");
 			RCWorkspace modWs = target
 									.request(MediaType.APPLICATION_JSON)
@@ -95,7 +93,7 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 	
 	@Test(expected=WebApplicationException.class)
 	public void testUpdateNonexistentWorkspace() {
-		WebTarget target = resources.client().target("/workspaces");
+		WebTarget target = resources.client().target("/workspaces/1");
 		//need to use valid id, else get processing exception
 		WorkspaceResource.WorkspacePutInput update = new WorkspaceResource.WorkspacePutInput(200000, "doofus123");
 		target
@@ -106,8 +104,17 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 	@Test
 	public void testFetchSessionImageById() throws Exception {
 		WebTarget target = resources.client().target("/workspaces/1/images/1");
-		Response rsp = target.request(MediaType.APPLICATION_OCTET_STREAM).get();
-		byte[] data = ByteStreams.toByteArray((InputStream) rsp.getEntity());
-		assertThat(data.length, is(13492));
+		assertThat(target, not(nullValue()));
+		try {
+			Response rsp = target.request().get();
+			assertThat(rsp.getStatus(), is(200));
+			InputStream is = (InputStream) rsp.getEntity();
+			assertThat(is, not(nullValue()));
+			byte[] data = ByteStreams.toByteArray(is);
+			assertThat(data.length, is(13492));
+		} catch (javax.ws.rs.ProcessingException pe) {
+			pe.getCause().printStackTrace();
+			System.err.println("image test failed:" + pe.getCause());
+		}
 	}
 }
