@@ -3,6 +3,7 @@ package edu.wvu.stat.rc2.persistence;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
@@ -47,6 +48,9 @@ public abstract class RCWorkspace {
 		_files = ImmutableList.copyOf(files);
 	}
 	
+	public Optional<RCFile> getFileWithId(int fileId) {
+		return _files.stream().filter(f -> f.getId() == fileId).findFirst();
+	}
 	
 	
 	public static class RCWorkspaceMapper implements ResultSetMapper<RCWorkspace> {

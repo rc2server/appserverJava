@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import edu.wvu.stat.rc2.persistence.RCUser;
 
 @WebSocket
-public final class RCSessionSocket {
+public class RCSessionSocket {
 	static final Logger log = LoggerFactory.getLogger("rc2.RCSessionSocket");
 	private static final AtomicInteger sNextId = new AtomicInteger(0);
 

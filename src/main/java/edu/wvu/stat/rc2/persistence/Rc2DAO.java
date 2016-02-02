@@ -12,6 +12,7 @@ public class Rc2DAO {
 	private volatile RCUser.Queries _userDao;
 	private volatile RCWorkspaceQueries _wsDao;
 	private volatile RCSessionImage.Queries _imgDao;
+	private volatile RCFileQueries _fileDao;
 	
 	Rc2DAO(DBI dbi, String host, String user, String database) {
 		_dbi = dbi;
@@ -61,6 +62,19 @@ public class Rc2DAO {
 				result = _wsDao;
 				if (result == null)
 					_wsDao = result = _dbi.onDemand(RCWorkspaceQueries.class);
+			}
+		}
+		return result;
+	}
+	
+	//uses double check idiom for fast performance (25x over synchronized)
+	public RCFileQueries getFileDao() {
+		RCFileQueries result = _fileDao;
+		if (null == result) {
+			synchronized(this) {
+				result = _fileDao;
+				if (null == result)
+					_fileDao = _dbi.onDemand(RCFileQueries.class);
 			}
 		}
 		return result;
