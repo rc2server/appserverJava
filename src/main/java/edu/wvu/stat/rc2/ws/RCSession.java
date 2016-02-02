@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.tweak.HandleCallback;
@@ -21,6 +22,9 @@ import edu.wvu.stat.rc2.rworker.response.BaseRResponse;
 import edu.wvu.stat.rc2.ws.request.*;
 import edu.wvu.stat.rc2.ws.response.BaseResponse;
 import edu.wvu.stat.rc2.ws.response.ErrorResponse;
+import edu.wvu.stat.rc2.ws.response.FileChangedResponse;
+import edu.wvu.stat.rc2.ws.response.FileChangedResponse.ChangeType;
+import edu.wvu.stat.rc2.persistence.RCFile;
 import edu.wvu.stat.rc2.persistence.RCSessionRecord;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
@@ -103,33 +107,34 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	public void handleNotification(String channelName, String message) {
 		if (!channelName.equals("rcfile") || message.length() < 2)
 			return;
+		//force refresh from the database. ideally we should be more selective, but the performance likely doesn't matter
+		_wspace.setFiles(_dao.getFileDao().filesForWorkspaceId(_wspace.getId()));
 		String[] parts = message.split("/");
 		int fid = Integer.parseInt(parts[0].substring(1));
+		Optional<RCFile> file = _wspace.getFileWithId(fid);
+		if (!file.isPresent()) {
+			log.warn("got file notification '" + message + "' for unknown file in workspace " + _wspace.getId());
+			return;
+		}
+		ChangeType ctype = null;
 		switch(message.charAt(0)) {
 			case 'd':
-				fileDeleted(fid);
+				ctype = ChangeType.Delete;
 				break;
 			case 'i':
-				fileInserted(fid);
+				ctype = ChangeType.Insert;
 				break;
 			case 'u':
-				fileUpdated(fid);
+				ctype = ChangeType.Update;
 				break;
+			default:
+				log.error("file note with invalid operation: " + message);
+				return;
 		}
+		FileChangedResponse  rsp = new FileChangedResponse(file.get(), ctype);
+		broadcastToAllClients(rsp);
 	}
-	
-	void fileDeleted(int fid) {
 		
-	}
-	
-	void fileInserted(int fid) {
-		
-	}
-	
-	void fileUpdated(int fid) {
-		
-	}
-	
 	private void handleExecuteRequest(ExecuteRequest request) {
 		if (request.getFileId() > 0) {
 			_rworker.executeScriptFile(request.getFileId());
