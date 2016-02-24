@@ -12,6 +12,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -70,16 +71,38 @@ public class FileResource {
 
 	@Path("upload")
 	@POST
+	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
+	public Response uploadStream(InputStream stream, @Context HttpHeaders headers)
+	{
+		log.info("handling uploadStream: " + headers);
+		try (TransactionHandleWrapper trans = new TransactionHandleWrapper(_dbi)) {
+			RCFileQueries fileDao = trans.addDao(RCFileQueries.class);
+			RCFile file = fileDao.createFileWithStream(_wspace.getId(), headers.getHeaderString("Rc2-Filename"), stream);
+			if (null == file) { //should really be impossible
+				log.warn("uploadFile without file specified:" + headers);
+				throw new WebApplicationException("file parameter missing", Response.Status.INTERNAL_SERVER_ERROR);
+			}
+		
+			return Response.status(Response.Status.CREATED).entity(file).build();
+		}
+	}
+
+	@Path("upload")
+	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response uploadFile(
+			@Context HttpHeaders headers, 
 			@FormDataParam("file") InputStream inStream, 
 			@FormDataParam("file") FormDataContentDisposition fileDetails) 
 	{
+		log.info("handling uploadFile");
 		try (TransactionHandleWrapper trans = new TransactionHandleWrapper(_dbi)) {
 			RCFileQueries fileDao = trans.addDao(RCFileQueries.class);
 			RCFile file = fileDao.createFileWithStream(_wspace.getId(), fileDetails.getFileName(), inStream);
-			if (null == file) //should really be impossible
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+			if (null == file) { //should really be impossible
+				log.warn("uploadFile without file specified:" + headers);
+				throw new WebApplicationException("file parameter missing", Response.Status.INTERNAL_SERVER_ERROR);
+			}
 		
 			return Response.status(Response.Status.CREATED).entity(file).build();
 		}
