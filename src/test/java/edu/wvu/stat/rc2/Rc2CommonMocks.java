@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -63,9 +64,14 @@ public class Rc2CommonMocks {
 	}
 
 	public static class MockSocketFactory extends RWorker.SocketFactory {
+		InputStream mockIn = mock(InputStream.class);
+		OutputStream mockOut = mock(OutputStream.class);
 		Socket mockSocket = mock(Socket.class);
+		public MockSocketFactory() throws IOException {
+			when(mockSocket.getInputStream()).thenReturn(mockIn);
+			when(mockSocket.getOutputStream()).thenReturn(mockOut);
+		}
 		public Socket createSocket(String host, int port) throws UnknownHostException, IOException {
-			when(mockSocket.getInputStream()).thenReturn(mock(InputStream.class));
 			return mockSocket;
 		}
 	}

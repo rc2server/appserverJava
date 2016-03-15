@@ -5,8 +5,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
-import java.util.Date;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -31,7 +29,7 @@ public class SessionFileNotificationTest {
 	}
 
 	@Test
-	public void testUpdateNotification() {
+	public void testUpdateNotification() throws Exception {
 		RCFile file = _wspace.getFiles().get(0);
 		final String note = "u" + file.getId() + "/0/0";
 		FileChangedResponse  rsp = generateNotification(note);
@@ -40,7 +38,7 @@ public class SessionFileNotificationTest {
 	}
 
 	@Test
-	public void testInsertNotification() {
+	public void testInsertNotification() throws Exception {
 		RCFile file = _wspace.getFiles().get(0);
 		final String note = "i" + file.getId() + "/0/0";
 		FileChangedResponse  rsp = generateNotification(note);
@@ -49,7 +47,7 @@ public class SessionFileNotificationTest {
 	}
 
 	@Test
-	public void testDeleteNotification() {
+	public void testDeleteNotification() throws Exception {
 		RCFile file = _wspace.getFiles().get(0);
 		final String note = "d" + file.getId();
 		FileChangedResponse  rsp = generateNotification(note);
@@ -57,7 +55,7 @@ public class SessionFileNotificationTest {
 		assertThat(rsp.getFile().getId(), is(file.getId()));
 	}
 
-	FileChangedResponse generateNotification(String note) { 
+	FileChangedResponse generateNotification(String note) throws Exception { 
 		RCSession session = new RCSession(_dbfactory, null, 1, new RWorker(new Rc2CommonMocks.MockSocketFactory(), null));
 		RCSessionSocket socket = mock(RCSessionSocket.class);
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);

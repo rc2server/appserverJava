@@ -100,11 +100,9 @@ public class RWorker implements Runnable {
 			while (!_outputQueue.isEmpty())
 				_outputQueue.remove();
 			writeOutMessage("{\"msg\":\"close\", \"argument\":\"\"}");
-
-			if (_in != null)
-				_in.close();
-			if (_out != null)
-				_out.close();
+			//for some reason, this exception can happen when running unit tests and I can't figure out why
+			try { if (_in != null) _in.close(); } catch (NullPointerException ne) {}
+			try { if (_out != null) _out.close(); } catch (NullPointerException ne) {}
 			if (_socket != null && _socket.isConnected() && !_socket.isClosed())
 				_socket.close();
 		} catch (Exception e) {
@@ -378,7 +376,7 @@ public class RWorker implements Runnable {
 	}
 	
 	/**
-	 	allows abstraction of socket creation (i.e. mocking for unit tests
+	 	allows abstraction of socket creation (i.e. mocking for unit tests)
 	 */
 	public static class SocketFactory {
 		protected String _host;

@@ -4,6 +4,9 @@ import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -31,7 +34,7 @@ public class RWorkerMessageHandlingTest {
 	@Before
 	public void setUp() throws Exception {
 		this.delegate = new TestDelegate();
-		this.worker = new RWorker(null, this.delegate);
+		this.worker = new RWorker(new MockSocketFactory(), this.delegate);
 	}
 
 	@After
@@ -144,4 +147,10 @@ public class RWorkerMessageHandlingTest {
 		assertThat(rsp.getImages(), is(fakeImages));
 	}
 
+	class MockSocketFactory extends RWorker.SocketFactory {
+		Socket mockSocket = mock(Socket.class);
+		public Socket createSocket(String host, int port) throws UnknownHostException, IOException {
+			return mockSocket;
+		}
+	}
 }

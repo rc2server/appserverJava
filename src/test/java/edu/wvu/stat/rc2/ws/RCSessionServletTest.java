@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wvu.stat.rc2.Rc2CommonMocks;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
+import edu.wvu.stat.rc2.ws.RCSessionCache.RWorkerFactory;
 
 public class RCSessionServletTest {
 	Rc2DataSourceFactory _dbfactory;
@@ -39,7 +40,8 @@ public class RCSessionServletTest {
 	@Before
 	public void setUp() throws Exception {
 		_dbfactory = new Rc2DataSourceFactory();
-		_sessionCache = new RCSessionCache(_dbfactory, new ObjectMapper());
+		_sessionCache = new RCSessionCache(_dbfactory, new ObjectMapper(), 
+				new RWorkerFactory(new Rc2CommonMocks.MockSocketFactory()));
 		_user = Rc2CommonMocks.mockTestUser();
 
 		//we need to mock WebSocketServletFactory to save the creator in _creator when setCreator is called
@@ -103,6 +105,4 @@ public class RCSessionServletTest {
 		when(_upgradeRequest.getRequestPath()).thenReturn("11111111");
 		testSocketCreationError();
 	}
-
-
 }
