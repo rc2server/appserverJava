@@ -1,19 +1,26 @@
 package edu.wvu.stat.rc2.ws;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.msgpack.jackson.dataformat.MessagePackFactory;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.tweak.HandleCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
@@ -24,7 +31,9 @@ import edu.wvu.stat.rc2.ws.response.BaseResponse;
 import edu.wvu.stat.rc2.ws.response.ErrorResponse;
 import edu.wvu.stat.rc2.ws.response.FileChangedResponse;
 import edu.wvu.stat.rc2.ws.response.FileChangedResponse.ChangeType;
+import edu.wvu.stat.rc2.ws.response.SaveResponse;
 import edu.wvu.stat.rc2.persistence.RCFile;
+import edu.wvu.stat.rc2.persistence.RCFileQueries;
 import edu.wvu.stat.rc2.persistence.RCSessionRecord;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
@@ -43,6 +52,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	private RCWorkspace _wspace;
 	private final List<RCSessionSocket> _webSockets;
 	private ObjectMapper _mapper;
+	private ObjectMapper _msgPackMapper;
 	private Rc2DAO _dao;
 	private RWorker _rworker;
 	
@@ -62,6 +72,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		_mapper = mapper;
 		if (null == _mapper)
 			_mapper = new ObjectMapper();
+		_msgPackMapper = new ObjectMapper(new MessagePackFactory());
 		_dao = _dbfactory.createDAO();
 		_wspace = _dao.findWorkspaceById(wspaceId);
 		if (null == _wspace)
@@ -135,7 +146,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		broadcastToAllClients(rsp);
 	}
 		
-	private void handleExecuteRequest(ExecuteRequest request) {
+	private void handleExecuteRequest(ExecuteRequest request, RCSessionSocket socket) {
 		if (request.getFileId() > 0) {
 			_rworker.executeScriptFile(request.getFileId());
 		} else {
@@ -143,26 +154,48 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		}
 	}
 
-	private void handleGetVariableRequest(GetVariableRequest request) {
+	private void handleGetVariableRequest(GetVariableRequest request, RCSessionSocket socket) {
 		_rworker.fetchVariableValue(request.getVariable());
 	}
 
-	private void handleHelpRequest(HelpRequest request) {
+	private void handleHelpRequest(HelpRequest request, RCSessionSocket socket) {
 		_rworker.lookupInHelp(request.getTopic());
 	}
 
-	private void handleWatchVariablesRequest(WatchVariablesRequest request) {
+	private void handleWatchVariablesRequest(WatchVariablesRequest request, RCSessionSocket socket) {
 		
 	}
 
-	private void handleKeepAliveRequest(KeepAliveRequest request) {
+	private void handleKeepAliveRequest(KeepAliveRequest request, RCSessionSocket socket) {
 		//do nothing
 	}
 	
-	private void handleUserListRequest(UserListRequest request) {
+	private void handleUserListRequest(UserListRequest request, RCSessionSocket socket) {
 		
 	}
 
+	private void handleSaveRequest(SaveRequest request, RCSessionSocket socket) {
+		SessionError error = null;
+		RCFileQueries fdao = getDAO().getFileDao();
+		RCFile file = fdao.findById(request.getFileId());
+		if (null == file) {
+			error = new SessionError(SessionError.ErrorCode.NoSuchFile);
+		} else if (file.getVersion() != request.getFileVersion()) {
+			error = new SessionError(SessionError.ErrorCode.VersionMismatch);
+		} else {
+			//do the save, which will trigger notification
+			ByteArrayInputStream stream = new ByteArrayInputStream(request.getContent().getBytes(Charset.forName("utf-8")));
+			file = fdao.updateFileContents(request.getFileId(), stream);
+			if (file == null) {
+				error = new SessionError(SessionError.ErrorCode.DatabaseUpdateFailed);
+			}
+		}
+		if (error != null)
+			file = null;
+		SaveResponse rsp = new SaveResponse(request.getTransId(), error == null, file, error);
+		broadcastToSingleClient(rsp, socket.getSocketId());
+	}
+	
 	//RCSessionSocket.Delegate
 	@Override
 	public void websocketUseDatabaseHandle(HandleCallback<Void> callback) {
@@ -197,8 +230,8 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		try {
 			req = _mapper.readValue(msg, BaseRequest.class);
 			final String methodName = "handle" + req.getClass().getSimpleName();
-			Method m = getClass().getDeclaredMethod(methodName, req.getClass());
-			m.invoke(this, req);
+			Method m = getClass().getDeclaredMethod(methodName, req.getClass(), RCSessionSocket.class);
+			m.invoke(this, req, socket);
 		} catch (Exception e) {
 			log.error("error parsing client json", e);
 			broadcastToAllClients(new ErrorResponse("unknown error"));
@@ -208,6 +241,18 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	//RCSessionSocket.Delegate
 	@Override
 	public void processWebsocketBinaryMessage(RCSessionSocket socket, byte[] data, int offset, int length) {
+		byte[] buffer = Arrays.copyOfRange(data, offset, length + offset);
+		BaseRequest req=null;
+		String cmdStr = null;
+		try {
+			req =  _msgPackMapper.readValue(buffer, BaseRequest.class);
+			final String methodName = "handle" + req.getClass().getSimpleName();
+			Method m = getClass().getDeclaredMethod(methodName, req.getClass(), RCSessionSocket.class);
+			m.invoke(this, req, socket);
+		} catch (Exception e) {
+			log.error("error parsing client binary request", e);
+			broadcastToSingleClient(new ErrorResponse("failed to process binary message"), socket.getSocketId());
+		}
 	}
 
 	//RWorker.Delegate
@@ -220,10 +265,14 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	@Override
 	public void broadcastToAllClients(BaseResponse response) {
 		try {
-			String msgStr = _mapper.writeValueAsString(response);
+			Object serializedResponse;
+			if (response.isBinaryMessage())
+				serializedResponse = _msgPackMapper.writeValueAsBytes(response);
+			else
+				serializedResponse = _mapper.writeValueAsString(response);
 			_webSockets.forEach(socket -> {
 				try {
-					socket.sendMessage(msgStr);
+					socket.sendResponse(serializedResponse);
 				} catch (Exception e) {
 					log.info("error sending message", e);
 				}
@@ -238,9 +287,13 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	@Override
 	public void broadcastToSingleClient(BaseResponse response, int socketId) {
 		try {
+			Object serializedResponse;
+			if (response.isBinaryMessage())
+				serializedResponse = _msgPackMapper.writeValueAsBytes(response);
+			else
+				serializedResponse = _mapper.writeValueAsString(response);
 			RCSessionSocket socket = _webSockets.stream().filter(p -> p.getSocketId() == socketId).findFirst().get();
-			String msgStr = _mapper.writeValueAsString(response);
-			socket.sendMessage(msgStr);
+			socket.sendResponse(serializedResponse);
 		} catch (Exception e) {
 			log.warn("error sending single message", e);
 		}

@@ -46,7 +46,22 @@ public class Rc2CommonMocks {
 		return wspace;
 	}
 	
+	public static class RCMockDBObjects {
+		public Rc2DataSourceFactory factory;
+		public Rc2DAO dao;
+		public RCFileQueries fdao;
+		RCMockDBObjects(Rc2DataSourceFactory fact, Rc2DAO dao, RCFileQueries queries) {
+			this.factory = fact;
+			this.dao = dao;
+			this.fdao = queries;
+		}
+	}
+	
 	public static Rc2DataSourceFactory mockDBFactoryForSession(RCWorkspace wspace) {
+		return mockDBObjectsForSession(wspace).factory;
+	}
+
+	public static RCMockDBObjects mockDBObjectsForSession(RCWorkspace wspace) {
 		Rc2DataSourceFactory dbfactory = mock(Rc2DataSourceFactory.class);
 		Rc2DAO dao = mock(Rc2DAO.class);
 		when(dbfactory.createDAO()).thenReturn(dao);
@@ -59,8 +74,9 @@ public class Rc2CommonMocks {
 		when(dao.getDBI()).thenReturn(sessionDbi);
 		RCFileQueries fdao = mock(RCFileQueries.class);
 		when(fdao.filesForWorkspaceId(wspace.getId())).thenReturn(wspace.getFiles());
+		when(fdao.findById(wspace.getFiles().get(0).getId())).thenReturn(wspace.getFiles().get(0));
 		when(dao.getFileDao()).thenReturn(fdao);
-		return dbfactory;
+		return new RCMockDBObjects(dbfactory, dao, fdao);
 	}
 
 	public static class MockSocketFactory extends RWorker.SocketFactory {

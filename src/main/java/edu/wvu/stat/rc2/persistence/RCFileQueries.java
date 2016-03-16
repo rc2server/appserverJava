@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.wvu.stat.rc2.jdbi.BindFile;
+import edu.wvu.stat.rc2.jdbi.BindInputStream;
 import edu.wvu.stat.rc2.persistence.RCFile.RCFileMapper;
 
 public abstract class RCFileQueries {
@@ -45,7 +46,23 @@ public abstract class RCFileQueries {
 	@SqlQuery("insert into rcfiledata (id, bindata) values (:id, :file) returning length(bindata)")
 	abstract int createFileData(@Bind("id") int id, @BindFile("file") File inputFile);
 
+	@SqlQuery("update rcfiledata set bindata = :stream where id = :id")
+	abstract int updateFileData(@Bind("id") int id, @BindInputStream("stream") InputStream stream);
 	
+	@SqlQuery("update rcfile set version = version + 1, lastmodified = now() where id = :id")
+	abstract int updateFileVersion(@Bind("id") int id);
+	
+	@Transaction
+	public RCFile updateFileContents(int fileId, InputStream contents) {
+		try {
+			updateFileData(fileId, contents);
+			updateFileVersion(fileId);
+		} catch (Exception e) {
+			log.error("error updating file contents", e);
+			return null;
+		}
+		return findById(fileId);
+	}
 	
 	@Transaction
 	public RCFile createFile(int wspaceId, String name, File file) {

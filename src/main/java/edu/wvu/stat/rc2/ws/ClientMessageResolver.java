@@ -15,10 +15,12 @@ public class ClientMessageResolver extends TypeIdResolverBase {
 		KEEPALIVE_MSG ("keepAlive"),
 		WATCHVARS_MSG ("watchVariables"),
 		GETVAR_MSG ("getVariable"),
-		HELP_MSG ("help");
+		HELP_MSG ("help"),
+		SAVE_MSG ("save");
 		
 		public final String jsonValue;
 		private Messages(String s) { jsonValue = s; }
+		
 		public static Messages valueWithJsonValue(String aValue) {
 			for (Messages msg : Messages.values()) {
 				if (msg.jsonValue.equals(aValue))
@@ -72,6 +74,9 @@ public class ClientMessageResolver extends TypeIdResolverBase {
 				break;
 			case GETVAR_MSG:
 				typeClass = "GetVariableRequest";
+				break;
+			case SAVE_MSG:
+				typeClass = "SaveRequest";
 				break;
 			default:
 				throw new IllegalStateException("cannot handle client request of type '" + type + "'");

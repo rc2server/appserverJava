@@ -95,6 +95,15 @@ public class RCSessionSocket {
 		_delegate.processWebsocketMessage(this, data);
 	}
 
+	public void sendResponse(Object response) {
+		if (response instanceof String) {
+			sendMessage((String)response);
+		} else {
+			byte[] data = (byte[])response;
+			sendBinaryMessage(data, 0, data.length);
+		}
+	}
+	
 	public void sendMessage(String msg) {
 		if (null != _outbound)
 			_outbound.getRemote().sendStringByFuture(msg);

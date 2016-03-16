@@ -9,6 +9,8 @@ public class BaseResponse {
 	protected final String _msg;
 	protected final int _queryId;
 	
+	public boolean isBinaryMessage() { return false; }
+	
 	@JsonCreator
 	public BaseResponse(	@JsonProperty("msg") String msg,
 							@JsonProperty("queryId") int queryId

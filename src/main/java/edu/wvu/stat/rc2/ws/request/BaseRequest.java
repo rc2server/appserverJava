@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 import edu.wvu.stat.rc2.ws.ClientMessageResolver;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, include = JsonTypeInfo.As.PROPERTY, property="msg")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, include = JsonTypeInfo.As.EXISTING_PROPERTY, property="msg", visible=false)
 @JsonTypeIdResolver(ClientMessageResolver.class)
 public class BaseRequest {
 	protected final String _msg;
@@ -15,7 +15,6 @@ public class BaseRequest {
 	@JsonCreator
 	public BaseRequest(@JsonProperty("msg") String msg) {
 		_msg = msg;
-		
 	}
 	
 	@JsonProperty
