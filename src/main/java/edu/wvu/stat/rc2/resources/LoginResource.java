@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -55,7 +56,7 @@ public class LoginResource extends BaseResource {
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response loginUser(@Valid LoginInput input) {
+	public Response loginUser(@Valid @NotNull LoginInput input) {
 		RCUser user = getDAO().getUserDao().findByLogin(input.getLogin());
 		if (user == null || !user.isEnabled() || !BCrypt.checkpw(input.getPassword(), user.getHashedPassword()))
 			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
@@ -77,8 +78,11 @@ public class LoginResource extends BaseResource {
 			_password = password;
 		}
 		
-		public @NotEmpty String getLogin() { return _login; }
-		public @NotEmpty @Size(min=4) String getPassword() { return _password; }
+		@NotNull(message="user required") @NotEmpty 
+		public String getLogin() { return _login; }
+		
+		@NotNull(message="password required") @NotEmpty @Size(min=4) 
+		public String getPassword() { return _password; }
 	}
 	
 	static class LoginOutput {
