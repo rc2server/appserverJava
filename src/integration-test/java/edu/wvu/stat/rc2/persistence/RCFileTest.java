@@ -13,10 +13,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 
+import edu.wvu.stat.rc2.UnitTestDBConfig;
 import edu.wvu.stat.rc2.jdbi.TransactionHandleWrapper;
 
 public class RCFileTest {
-	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
+	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory(new UnitTestDBConfig());
 	private DBI _dbi;
 
 	@Before

@@ -21,10 +21,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.rworker.RWorker;
 import edu.wvu.stat.rc2.Rc2CommonMocks;
+import edu.wvu.stat.rc2.UnitTestDBConfig;
 import edu.wvu.stat.rc2.persistence.RCUser;
 
 public class RCSessionCacheTest {
-	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
+	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory(new UnitTestDBConfig());
 
 	RCUser _user;
 	ObjectMapper _mapper;

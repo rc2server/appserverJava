@@ -7,8 +7,10 @@ import java.util.Random;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 
+import edu.wvu.stat.rc2.UnitTestDBConfig;
+
 public class RCWorkspaceDataTest {
-	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
+	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory(new UnitTestDBConfig());
 	private final Random _random;
 	DBI _dbi;
 

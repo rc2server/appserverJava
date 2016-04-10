@@ -12,6 +12,8 @@ import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
+import edu.wvu.stat.rc2.UnitTestDBConfig;
+
 public class DBNotificationTest {
 	volatile String _lastMessage;
 	
@@ -28,7 +30,7 @@ public class DBNotificationTest {
 			_lastMessage = message;
 			latch.countDown();
 		};
-		Rc2DataSourceFactory factory = new Rc2DataSourceFactory();
+		Rc2DataSourceFactory factory = new Rc2DataSourceFactory(new UnitTestDBConfig());
 		factory.addNotificationListener(channel , listener);
 		DBI dbi = factory.createDBI();
 		dbi.withHandle((Handle h) -> {

@@ -28,16 +28,16 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 public class Rc2Application extends Application<Rc2AppConfiguration> {
-	private static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
-	
 	
 	public static void main(String[] args) throws Exception {
 		new Rc2Application().run(args);
 	}
 	
+	private Rc2DataSourceFactory _dbfactory;
 	private ScheduledExecutorService _execService;
 	private RCSessionCache _sessionCache;
 	private Rc2DAO _dao;
+	private Rc2AppConfiguration _config;
 	
 	@Override
 	public String getName() {
@@ -54,18 +54,20 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	
 	@Override
 	public void run(Rc2AppConfiguration config, Environment env) {
-		_sessionCache = new RCSessionCache(dbfactory, env.getObjectMapper());
+		_config = config;
+		_dbfactory = new Rc2DataSourceFactory(config.getDatabaseConfig());
+		_sessionCache = new RCSessionCache(_dbfactory, env.getObjectMapper());
 		_execService = env.lifecycle().scheduledExecutorService("rc2-exec", true).build();
 		_sessionCache.scheduleCleanupTask(_execService);
 		env.lifecycle().manage(_sessionCache);
-		if (config.getEnableTracing()) {
+		if (_config.getEnableTracing()) {
 			env.jersey().getResourceConfig().property(ServerProperties.TRACING, "ON_DEMAND");
 			env.jersey().getResourceConfig().property(ServerProperties.TRACING_THRESHOLD, "TRACE");
 		}
 		
 		if (config.getPrettyPrint())
 			env.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-		env.servlets().addFilter("Rc2AuthServletFilter", new Rc2AuthServletFilter(dbfactory))
+		env.servlets().addFilter("Rc2AuthServletFilter", new Rc2AuthServletFilter(_dbfactory))
 			.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, "/*");
 		env.jersey().register(UserResource.class);
 		env.jersey().register(WorkspaceResource.class);
@@ -76,7 +78,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 
 		env.jersey().register(new DAOInjectFilter());
 
-		env.healthChecks().register("database", new DatabaseHealthCheck(dbfactory));
+		env.healthChecks().register("database", new DatabaseHealthCheck(_dbfactory));
 		System.err.println("run complete");
 	}
 
@@ -86,7 +88,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		if (null == dao) {
 			synchronized(this) {
 				if (null == _dao) {
-					_dao = dbfactory.createDAO();
+					_dao = _dbfactory.createDAO();
 				}
 				dao = _dao;
 			}

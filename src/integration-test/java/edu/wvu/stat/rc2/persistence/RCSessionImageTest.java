@@ -16,8 +16,10 @@ import org.skife.jdbi.v2.tweak.HandleCallback;
 
 import com.google.common.io.Files;
 
+import edu.wvu.stat.rc2.UnitTestDBConfig;
+
 public class RCSessionImageTest {
-	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
+	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory(new UnitTestDBConfig());
 	private Rc2DAO _dao;
 	private int _imgId, _sessionId;
 	

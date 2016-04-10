@@ -26,6 +26,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.Rc2CommonMocks;
+import edu.wvu.stat.rc2.UnitTestDBConfig;
 import edu.wvu.stat.rc2.persistence.RCFile;
 import edu.wvu.stat.rc2.persistence.RCFileQueries;
 import edu.wvu.stat.rc2.persistence.RCUser;
@@ -33,7 +34,7 @@ import edu.wvu.stat.rc2.persistence.Rc2DAO;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 
 public class FileUploadTest extends JerseyTest {
-	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory();
+	static final Rc2DataSourceFactory dbfactory = new Rc2DataSourceFactory(new UnitTestDBConfig());
 	static final Rc2DAO dao = dbfactory.createDAO();
 	
 	static final RCUser user = Rc2CommonMocks.mockTestUser();

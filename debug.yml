@@ -2,18 +2,18 @@ server:
   applicationConnectors:
     - type: http
       port: 8088
-      supportedProtocols: ["TLSv1.2"]
-      validateCerts: false
 #    - type: https
 #      port: 8443
 #      keyStorePath: barney.keystore
 #      keyStorePassword: statman
-#      supportedProtocols: 
-#        - TLSv1
-#        - TLSv2
-#        - TLSv3
+#      supportedProtocols: ["TLSv1.2"]
 #      validateCerts: false
 
 
 prettyPrint: true
 enableTracing: true
+
+databaseConfig:
+  dbhost: localhost
+  dbname: rc2test
+  dbuser: rc2

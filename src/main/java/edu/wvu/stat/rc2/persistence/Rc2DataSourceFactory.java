@@ -13,6 +13,7 @@ import com.impossibl.postgres.api.jdbc.PGConnection;
 import com.impossibl.postgres.api.jdbc.PGNotificationListener;
 import com.impossibl.postgres.jdbc.PGDataSource;
 
+import edu.wvu.stat.rc2.config.DatabaseConfig;
 import edu.wvu.stat.rc2.jdbi.BigIntegerArgumentFactory;
 
 public class Rc2DataSourceFactory {
@@ -21,19 +22,16 @@ public class Rc2DataSourceFactory {
 	private final DataSource _ds;
 	private final ArrayList<ListenerProxy> _listeners;
 	private PGConnection _listenerConnection;
+	private final DatabaseConfig _dbConfig;
 	private final String _host;
 	private final String _userid;
 	private final String _dbname;
 	
-	/** defaults to using test database on localhost */
-	public Rc2DataSourceFactory() {
-		this(System.getProperty("rc2.dbhost", "localhost"), "rc2", System.getProperty("rc2.dbname", "rc2test"));
-	}
-	
-	public Rc2DataSourceFactory(String host, String user, String database) {
-		_host = host;
-		_userid = user;
-		_dbname = database;
+	public Rc2DataSourceFactory(DatabaseConfig config) {
+		_dbConfig = config;
+		_host = _dbConfig.getDbhost();
+		_userid = _dbConfig.getDbuser();
+		_dbname = _dbConfig.getDbname();
 		PGDataSource pgds=null;
 		log.info("connecting to " + _host + "/" + _dbname);
 		pgds = new PGDataSource();
