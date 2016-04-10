@@ -3,8 +3,12 @@ package edu.wvu.stat.rc2.persistence;
 import java.util.List;
 
 import org.skife.jdbi.v2.DBI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Rc2DAO {
+	static final Logger log = LoggerFactory.getLogger("rc2.Rc2DAO");
+
 	private final DBI _dbi;
 	private final String _dbHost;
 	private final String _dbUser;
@@ -73,8 +77,12 @@ public class Rc2DAO {
 		if (null == result) {
 			synchronized(this) {
 				result = _fileDao;
-				if (null == result)
-					_fileDao = _dbi.onDemand(RCFileQueries.class);
+				if (null == result) {
+					_fileDao = result = _dbi.onDemand(RCFileQueries.class);
+					if (null == _fileDao) {
+						log.error("failed to create fileDAO");
+					}
+				}
 			}
 		}
 		return result;

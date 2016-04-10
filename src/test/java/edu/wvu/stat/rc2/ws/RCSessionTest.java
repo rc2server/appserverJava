@@ -25,6 +25,7 @@ import org.mockito.ArgumentCaptor;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Files;
 
 import edu.wvu.stat.rc2.Rc2CommonMocks;
 import edu.wvu.stat.rc2.Rc2CommonMocks.RCMockDBObjects;
@@ -97,6 +98,8 @@ public class RCSessionTest {
 		assertThat(_session.getClientCount(), is(1));
 	}
 	
+	//TODO: write test for a failed request
+	
 	@Test
 	public void testSaveRequest() throws Exception {
 		String content = "#testing\n2*4\ny <- c(1,2,y)\n";
@@ -118,6 +121,7 @@ public class RCSessionTest {
 		ByteBuffer readBuf = captor.getValue();
 		byte[] readBytes = new byte[readBuf.capacity()];
 		readBuf.get(readBytes);
+		Files.write(readBytes, new java.io.File("/tmp/lastSaveResponse"));
 		SaveResponse rsp = mapper.readValue(readBytes, SaveResponse.class);
 		assertThat(rsp.getTransId(), is(transid));
 		assertThat(rsp.getSuccess(), is(true));

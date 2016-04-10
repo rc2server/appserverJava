@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 import org.skife.jdbi.v2.DBI;
@@ -55,7 +57,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	private ObjectMapper _msgPackMapper;
 	private Rc2DAO _dao;
 	private RWorker _rworker;
-	
+	private ExecutorService _executor;
 	private final long _startTime;
 	private final int _sessionId;
 	private boolean _watchingVariables;
@@ -72,6 +74,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		_mapper = mapper;
 		if (null == _mapper)
 			_mapper = new ObjectMapper();
+		_executor = Executors.newSingleThreadExecutor();
 		_msgPackMapper = new ObjectMapper(new MessagePackFactory());
 		_dao = _dbfactory.createDAO();
 		_wspace = _dao.findWorkspaceById(wspaceId);
@@ -94,6 +97,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		rwt.setName("rworker " + wspaceId);
 		rwt.start();
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> _rworker.shutdown()));
+		_dbfactory.addNotificationListener("rcfile", this);
 	}
 
 	//RCSessionSocket.Delegate
@@ -108,7 +112,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	
 	
 	void shutdown() {
-		log.info("session shutting down");
+		log.info("session shutting down", new Exception());
 		_rworker.shutdown();
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
 		srecDao.closeSessionRecord(_sessionId);
@@ -118,6 +122,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	public void handleNotification(String channelName, String message) {
 		if (!channelName.equals("rcfile") || message.length() < 2)
 			return;
+		log.info("got db file notification:" + message);
 		//force refresh from the database. ideally we should be more selective, but the performance likely doesn't matter
 		_wspace.setFiles(_dao.getFileDao().filesForWorkspaceId(_wspace.getId()));
 		String[] parts = message.split("/");
@@ -144,9 +149,14 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		}
 		FileChangedResponse  rsp = new FileChangedResponse(file.get(), ctype);
 		broadcastToAllClients(rsp);
+		_executor.submit(() -> {
+			log.info("telling worker file was updated");
+			_rworker.fileUpdated(file.get());
+		});
 	}
 		
 	private void handleExecuteRequest(ExecuteRequest request, RCSessionSocket socket) {
+		//TODO: implement sourcing via request.getType()
 		if (request.getFileId() > 0) {
 			_rworker.executeScriptFile(request.getFileId());
 		} else {
@@ -175,15 +185,20 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	}
 
 	private void handleSaveRequest(SaveRequest request, RCSessionSocket socket) {
+		if (request == null) { log.warn("save request is null"); }
 		SessionError error = null;
 		RCFileQueries fdao = getDAO().getFileDao();
+		log.info("save request=" + request + " fid=" + request.getFileId() + " ver=" + request.getFileVersion());
 		RCFile file = fdao.findById(request.getFileId());
+		log.info("saved version = " + file.getVersion());
 		if (null == file) {
 			error = new SessionError(SessionError.ErrorCode.NoSuchFile);
 		} else if (file.getVersion() != request.getFileVersion()) {
+			log.info("file version mismatch:" + file.getVersion() + " vs " + request.getFileVersion());
 			error = new SessionError(SessionError.ErrorCode.VersionMismatch);
 		} else {
 			//do the save, which will trigger notification
+			log.info("saving file modifications");
 			ByteArrayInputStream stream = new ByteArrayInputStream(request.getContent().getBytes(Charset.forName("utf-8")));
 			file = fdao.updateFileContents(request.getFileId(), stream);
 			if (file == null) {
@@ -219,6 +234,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	//RCSessionSocket.Delegate
 	@Override
 	public void websocketClosed(RCSessionSocket socket) {
+		log.info("websocket says to close");
 		_webSockets.remove(socket);
 	}
 

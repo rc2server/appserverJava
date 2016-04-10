@@ -21,7 +21,7 @@ public class ServerMessageResolver extends TypeIdResolverBase {
 		SHOW_OUTPUT_MSG ("showoutput"),
 		VAR_UPDATE_MSG ("variableupdate"),
 		VAR_VALUE_MSG ("variablevalue"),
-		OPENSUCCESS_MSG ("opensuccess"),
+		OPENSUCCESS_MSG ("openresponse"),
 		HELP_MSG ("help");
 		
 		public final String jsonValue;

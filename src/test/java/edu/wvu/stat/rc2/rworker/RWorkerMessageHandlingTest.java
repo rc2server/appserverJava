@@ -83,7 +83,7 @@ public class RWorkerMessageHandlingTest {
 		assertThat(delegate.messagesBroadcast.size(), is(1));
 		assertThat(delegate.messagesBroadcast.get(0), instanceOf(ResultsResponse.class));
 		ResultsResponse msg = (ResultsResponse)delegate.messagesBroadcast.get(0);
-		assertThat(msg.getFileId(), is(11));
+		assertThat(msg.getFile().getId(), is(11));
 	}
 
 	@Test

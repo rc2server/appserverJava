@@ -18,8 +18,8 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
+//import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+//import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +58,7 @@ public class FileResource {
 			return builder.build();
 		byte[] fileData = fdao.fileDataById(fileId);
 		Response rsp = Response.ok().entity(fileData).tag(etag).lastModified(file.getLastModified()).build();
+		log.info("returning file:" + rsp);
 		return rsp;
 	}
 	
@@ -87,25 +88,25 @@ public class FileResource {
 		}
 	}
 
-	@Path("upload")
-	@POST
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public Response uploadFile(
-			@Context HttpHeaders headers, 
-			@FormDataParam("file") InputStream inStream, 
-			@FormDataParam("file") FormDataContentDisposition fileDetails) 
-	{
-		log.info("handling uploadFile");
-		try (TransactionHandleWrapper trans = new TransactionHandleWrapper(_dbi)) {
-			RCFileQueries fileDao = trans.addDao(RCFileQueries.class);
-			RCFile file = fileDao.createFileWithStream(_wspace.getId(), fileDetails.getFileName(), inStream);
-			if (null == file) { //should really be impossible
-				log.warn("uploadFile without file specified:" + headers);
-				throw new WebApplicationException("file parameter missing", Response.Status.INTERNAL_SERVER_ERROR);
-			}
-		
-			return Response.status(Response.Status.CREATED).entity(file).build();
-		}
-	}
+//	@Path("upload")
+//	@POST
+//	@Consumes(MediaType.MULTIPART_FORM_DATA)
+//	public Response uploadFile(
+//			@Context HttpHeaders headers, 
+//			@FormDataParam("file") InputStream inStream, 
+//			@FormDataParam("file") FormDataContentDisposition fileDetails) 
+//	{
+//		log.info("handling uploadFile");
+//		try (TransactionHandleWrapper trans = new TransactionHandleWrapper(_dbi)) {
+//			RCFileQueries fileDao = trans.addDao(RCFileQueries.class);
+//			RCFile file = fileDao.createFileWithStream(_wspace.getId(), fileDetails.getFileName(), inStream);
+//			if (null == file) { //should really be impossible
+//				log.warn("uploadFile without file specified:" + headers);
+//				throw new WebApplicationException("file parameter missing", Response.Status.INTERNAL_SERVER_ERROR);
+//			}
+//		
+//			return Response.status(Response.Status.CREATED).entity(file).build();
+//		}
+//	}
 	
 }

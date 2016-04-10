@@ -12,6 +12,7 @@ public class ExecCompleteRResponse extends BaseRResponse {
 	private final int _imgBatchId;
 	private final int _queryId;
 	private final List<Integer> _imageIds;
+	private final boolean _expectShowOutput;
 	
 	@JsonCreator
 	public ExecCompleteRResponse(
@@ -19,7 +20,8 @@ public class ExecCompleteRResponse extends BaseRResponse {
 			@JsonProperty("startTime") String startTime,
 			@JsonProperty("images") List<Integer> imageIds,
 			@JsonProperty("imgBatch") int imgBatchId,
-			@JsonProperty("queryId") int queryId
+			@JsonProperty("queryId") int queryId,
+			@JsonProperty("expectShowOutput") boolean expectShowOutput
 			) 
 	{
 		super(msg);
@@ -29,11 +31,13 @@ public class ExecCompleteRResponse extends BaseRResponse {
 		_imageIds = imageIds;
 		_imgBatchId = imgBatchId;
 		_queryId = queryId;
+		_expectShowOutput = expectShowOutput;
 	}
 	
 	public long getStartTime() { return _startTime; }
 	public List<Integer> getImageIds() { return _imageIds; }
 	public int getImageBatchId() { return _imgBatchId; }
 	public int getQueryId() { return _queryId; }
+	public boolean getExpectShowOutput() { return _expectShowOutput; }
 }
 

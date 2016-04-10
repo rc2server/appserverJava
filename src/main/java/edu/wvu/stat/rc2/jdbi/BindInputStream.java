@@ -32,6 +32,7 @@ public @interface BindInputStream {
 						final File tmpFile = File.createTempFile("rc2upload", ".tmp");
 						try {
 							final Path destination = Paths.get(tmpFile.toURI());
+							Files.delete(destination);
 							Files.copy(stream, destination);
 							q.bindBinaryStream(bind.value(), new FileInputStream(tmpFile), (int) tmpFile.length());
 						} finally {

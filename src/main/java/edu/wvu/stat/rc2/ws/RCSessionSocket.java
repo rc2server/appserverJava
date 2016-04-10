@@ -105,6 +105,7 @@ public class RCSessionSocket {
 	}
 	
 	public void sendMessage(String msg) {
+		log.info("sending json:" + msg);
 		if (null != _outbound)
 			_outbound.getRemote().sendStringByFuture(msg);
 	}

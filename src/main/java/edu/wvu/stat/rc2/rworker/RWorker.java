@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.wvu.stat.rc2.persistence.RCFile;
 import edu.wvu.stat.rc2.persistence.RCSessionImage;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 import edu.wvu.stat.rc2.rworker.response.*;
@@ -42,6 +43,7 @@ public class RWorker implements Runnable {
 	private boolean _watchingVariables;
 	private volatile boolean _shouldBeRunning;
 	final ArrayBlockingQueue<String> _outputQueue;
+	private HashMap<Integer, ShowOutputRResponse> _pendingShowOutputs;
 
 	public RWorker(SocketFactory socketFactory, Delegate delegate) {
 		//new Exception().printStackTrace();
@@ -57,6 +59,7 @@ public class RWorker implements Runnable {
 		_delegate = delegate;
 		_outputQueue = new ArrayBlockingQueue<String>(OUT_QUEUE_SIZE);
 		_nextQueryId = 1001;
+		_pendingShowOutputs = new HashMap<Integer, ShowOutputRResponse>();
 }
 	
 	public Delegate getDelegate() { return _delegate; }
@@ -156,6 +159,16 @@ public class RWorker implements Runnable {
 		}
 	}
 
+	public void fileUpdated(RCFile file) {
+		ShowOutputRResponse rsp = _pendingShowOutputs.get(file.getId());
+		if (null == rsp)
+			log.info("fileUpdated called with unknown file id");
+		if (rsp != null && file.getVersion() >= rsp.getFileVersion()) {
+			sendShowOutputResponse(rsp, file);
+			_pendingShowOutputs.remove(file.getId());
+		}
+	}
+	
 	protected void listVariables(boolean deltaOnly) {
 		Map<String, Object> cmd = new HashMap<String, Object>();
 		cmd.put("msg", "listVariables");
@@ -209,7 +222,7 @@ public class RWorker implements Runnable {
 			log.info("getting images from batch " + batchId + ", sessionId " + _delegate.getSessionRecordId());
 			images = getDelegate().getDAO().findImageBatchById(batchId, _delegate.getSessionRecordId());
 		}
-		ExecCompleteResponse rsp = new ExecCompleteResponse(batchId , images, msg.getQueryId());
+		ExecCompleteResponse rsp = new ExecCompleteResponse(batchId , images, msg.getQueryId(), msg.getExpectShowOutput());
 		getDelegate().broadcastToAllClients(rsp);
 	}
 
@@ -236,12 +249,19 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleResultsResponse(ResultsRResponse msg) {
-		getDelegate().broadcastToAllClients(new ResultsResponse(msg.getString(), 0, msg.getQueryId()));
+		getDelegate().broadcastToAllClients(new ResultsResponse(msg.getString(), null, msg.getQueryId()));
 	}
 
 	@SuppressWarnings("unused") //dynamically called
-	private void handleShowOutputResponse(ShowOutputRResponse msg) {
-		getDelegate().broadcastToAllClients(new ResultsResponse("", msg.getFileId(), msg.getQueryId()));
+	private synchronized void handleShowOutputResponse(ShowOutputRResponse msg) {
+		RCFile file = getDelegate().getDAO().getFileDao().findById(msg.getFileId());
+		if (file == null || file.getVersion() < msg.getFileVersion()) {
+			//we need to delay sending this message until the file update notification is received from the database
+			_pendingShowOutputs.put(msg.getFileId(), msg);
+			log.info("delaying showoutput message want:" + msg.getFileVersion() + " actual:" + file.getVersion());
+			return;
+		}
+		sendShowOutputResponse(msg, file);
 	}
 
 	@SuppressWarnings("unused") //dynamically called
@@ -262,7 +282,11 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleOpenSuccessResponse(OpenSuccessRResponse rsp) {
-		
+		//TODO: report failed to open session to client(s)
+	}
+	
+	private void sendShowOutputResponse(ShowOutputRResponse rsp, RCFile file) {
+		getDelegate().broadcastToAllClients(new ShowOutputResponse(file, rsp.getQueryId()));
 	}
 	
 	@Override

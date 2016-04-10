@@ -43,13 +43,13 @@ public abstract class RCFileQueries {
 	@GetGeneratedKeys
 	abstract int createFile(@Bind("wspaceId") int wspaceId, @Bind("name") String name, @Bind("fileSize") int fileSize);
 	
-	@SqlQuery("insert into rcfiledata (id, bindata) values (:id, :file) returning length(bindata)")
+	@SqlUpdate("insert into rcfiledata (id, bindata) values (:id, :file) returning length(bindata)")
 	abstract int createFileData(@Bind("id") int id, @BindFile("file") File inputFile);
 
-	@SqlQuery("update rcfiledata set bindata = :stream where id = :id")
+	@SqlUpdate("update rcfiledata set bindata = :stream where id = :id")
 	abstract int updateFileData(@Bind("id") int id, @BindInputStream("stream") InputStream stream);
 	
-	@SqlQuery("update rcfile set version = version + 1, lastmodified = now() where id = :id")
+	@SqlUpdate("update rcfile set version = version + 1, lastmodified = now() where id = :id")
 	abstract int updateFileVersion(@Bind("id") int id);
 	
 	@Transaction

@@ -11,11 +11,13 @@ import edu.wvu.stat.rc2.persistence.RCSessionImage;
 public class ExecCompleteResponse extends BaseResponse {
 	private final int _batchId;
 	private List<RCSessionImage> _images;
+	private boolean _expectShowOutput;
 	
-	public ExecCompleteResponse(int batchId, List<RCSessionImage> images, int queryId) {
+	public ExecCompleteResponse(int batchId, List<RCSessionImage> images, int queryId, boolean expectShowOutput) {
 		super("results", queryId);
 		_batchId = batchId;
 		_images = images;
+		_expectShowOutput = expectShowOutput;
 	}
 	
 	@JsonProperty
@@ -26,4 +28,7 @@ public class ExecCompleteResponse extends BaseResponse {
 	
 	@JsonProperty
 	public boolean getComplete() { return true; }
+	
+	@JsonProperty
+	public boolean expectShowOutput() { return _expectShowOutput; }
 }
