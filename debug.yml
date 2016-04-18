@@ -17,3 +17,6 @@ databaseConfig:
   dbhost: localhost
   dbname: rc2test
   dbuser: rc2
+
+sessionConfig:
+  showOutputFileSizeLimitInKB: 25

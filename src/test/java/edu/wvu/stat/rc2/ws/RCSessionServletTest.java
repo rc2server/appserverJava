@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.Rc2CommonMocks;
 import edu.wvu.stat.rc2.UnitTestDBConfig;
+import edu.wvu.stat.rc2.config.SessionConfigImpl;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.ws.RCSessionCache.RWorkerFactory;
@@ -42,7 +43,7 @@ public class RCSessionServletTest {
 	public void setUp() throws Exception {
 		_dbfactory = new Rc2DataSourceFactory(new UnitTestDBConfig());
 
-		_sessionCache = new RCSessionCache(_dbfactory, new ObjectMapper(), 
+		_sessionCache = new RCSessionCache(_dbfactory, new ObjectMapper(), new SessionConfigImpl(),
 				new RWorkerFactory(new Rc2CommonMocks.MockSocketFactory()));
 		_user = Rc2CommonMocks.mockTestUser();
 

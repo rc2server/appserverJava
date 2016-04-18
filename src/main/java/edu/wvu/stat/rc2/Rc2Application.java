@@ -56,7 +56,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	public void run(Rc2AppConfiguration config, Environment env) {
 		_config = config;
 		_dbfactory = new Rc2DataSourceFactory(config.getDatabaseConfig());
-		_sessionCache = new RCSessionCache(_dbfactory, env.getObjectMapper());
+		_sessionCache = new RCSessionCache(_dbfactory, env.getObjectMapper(), _config.getSessionConfig());
 		_execService = env.lifecycle().scheduledExecutorService("rc2-exec", true).build();
 		_sessionCache.scheduleCleanupTask(_execService);
 		env.lifecycle().manage(_sessionCache);

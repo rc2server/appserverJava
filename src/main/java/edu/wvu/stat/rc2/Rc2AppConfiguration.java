@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import edu.wvu.stat.rc2.config.DatabaseConfig;
 import edu.wvu.stat.rc2.config.DatabaseConfigImpl;
+import edu.wvu.stat.rc2.config.SessionConfig;
+import edu.wvu.stat.rc2.config.SessionConfigImpl;
 import io.dropwizard.Configuration;
 
 public class Rc2AppConfiguration extends Configuration {
@@ -13,6 +15,7 @@ public class Rc2AppConfiguration extends Configuration {
 	private boolean _prettyPrint;
 	private boolean _enableTracing;
 	private DatabaseConfig _dbConfig;
+	private SessionConfig _sessionConfig;
 	
 	public boolean getPrettyPrint() { return _prettyPrint; }
 	public void setPrettyPrint(boolean p) { _prettyPrint = p; }
@@ -23,5 +26,9 @@ public class Rc2AppConfiguration extends Configuration {
 	@JsonDeserialize(as=DatabaseConfigImpl.class)
 	public DatabaseConfig getDatabaseConfig() { return _dbConfig; }
 	public void setDatabaseConfig(DatabaseConfig dbConfig) { _dbConfig = dbConfig; }
+	
+	@JsonDeserialize(as=SessionConfigImpl.class)
+	public SessionConfig getSessionConfig()  { return _sessionConfig; }
+	public void setSessionConfig(SessionConfig config) { _sessionConfig = config; }
 	
 }

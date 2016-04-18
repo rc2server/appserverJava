@@ -29,6 +29,7 @@ import com.google.common.io.Files;
 
 import edu.wvu.stat.rc2.Rc2CommonMocks;
 import edu.wvu.stat.rc2.Rc2CommonMocks.RCMockDBObjects;
+import edu.wvu.stat.rc2.config.SessionConfigImpl;
 import edu.wvu.stat.rc2.persistence.RCFile;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
@@ -52,7 +53,7 @@ public class RCSessionTest {
 		_worker = new RWorker(new Rc2CommonMocks.MockSocketFactory(), null);
 
 		_user = Rc2CommonMocks.mockTestUser();
-		_session = new RCSession(_dbObjs.factory, null, _wspace.getId(), _worker);
+		_session = new RCSession(_dbObjs.factory, null, new SessionConfigImpl(), _wspace.getId(), _worker);
 		assertThat(_session.getWorkspaceId(), is(1));
 
 		HttpServletRequest httpRequest = mock(HttpServletRequest.class);
@@ -86,7 +87,7 @@ public class RCSessionTest {
 	@Test
 	public void testInvalidWorkspace() {
 		try {
-			new RCSession(_dbObjs.factory, null, 10111131, null);
+			new RCSession(_dbObjs.factory, null, new SessionConfigImpl(), 10111131, null);
 			fail("failed to throw illegalArgumentException");
 		} catch (IllegalArgumentException e) {
 			//what we expected

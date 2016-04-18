@@ -111,6 +111,7 @@ public class RCSessionSocket {
 	}
 
 	public void sendBinaryMessage(byte[] data, int offset, int length) {
+		log.info("sending binary message");
 		if (null != _outbound) {
 			ByteBuffer buf = ByteBuffer.wrap(data, offset, length);
 			_outbound.getRemote().sendBytesByFuture(buf);

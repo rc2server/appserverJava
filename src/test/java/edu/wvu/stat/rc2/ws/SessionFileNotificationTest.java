@@ -11,6 +11,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import edu.wvu.stat.rc2.Rc2CommonMocks;
+import edu.wvu.stat.rc2.config.SessionConfigImpl;
 import edu.wvu.stat.rc2.persistence.RCFile;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
@@ -56,7 +57,7 @@ public class SessionFileNotificationTest {
 	}
 
 	FileChangedResponse generateNotification(String note) throws Exception { 
-		RCSession session = new RCSession(_dbfactory, null, 1, new RWorker(new Rc2CommonMocks.MockSocketFactory(), null));
+		RCSession session = new RCSession(_dbfactory, null, new SessionConfigImpl(), 1, new RWorker(new Rc2CommonMocks.MockSocketFactory(), null));
 		RCSessionSocket socket = mock(RCSessionSocket.class);
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		session.websocketOpened(socket);

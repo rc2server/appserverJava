@@ -34,6 +34,7 @@ import edu.wvu.stat.rc2.ws.response.ErrorResponse;
 import edu.wvu.stat.rc2.ws.response.FileChangedResponse;
 import edu.wvu.stat.rc2.ws.response.FileChangedResponse.ChangeType;
 import edu.wvu.stat.rc2.ws.response.SaveResponse;
+import edu.wvu.stat.rc2.config.SessionConfig;
 import edu.wvu.stat.rc2.persistence.RCFile;
 import edu.wvu.stat.rc2.persistence.RCFileQueries;
 import edu.wvu.stat.rc2.persistence.RCSessionRecord;
@@ -57,6 +58,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	private ObjectMapper _msgPackMapper;
 	private Rc2DAO _dao;
 	private RWorker _rworker;
+	private SessionConfig _config;
 	private ExecutorService _executor;
 	private final long _startTime;
 	private final int _sessionId;
@@ -68,10 +70,11 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	 @param mapper An object mapper to use for json conversion. If null, a generic mapper will be created.
 	 @param rworker The rworker to use. If null, one will be created.
 	 */
-	RCSession(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, int wspaceId, RWorker rworker) 
+	RCSession(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, SessionConfig config, int wspaceId, RWorker rworker) 
 	{
 		_dbfactory = dbfactory;
 		_mapper = mapper;
+		_config = config;
 		if (null == _mapper)
 			_mapper = new ObjectMapper();
 		_executor = Executors.newSingleThreadExecutor();
@@ -277,6 +280,10 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		return _dao;
 	}
 
+	//RWorker.Delegate
+	@Override
+	public SessionConfig getSessionConfig() { return _config; }
+	
 	//RWorker.Delegate
 	@Override
 	public void broadcastToAllClients(BaseResponse response) {

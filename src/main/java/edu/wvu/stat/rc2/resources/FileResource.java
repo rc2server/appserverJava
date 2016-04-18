@@ -54,8 +54,10 @@ public class FileResource {
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 		EntityTag etag = new EntityTag(file.getETag());
 		ResponseBuilder builder = request.evaluatePreconditions(etag);
-		if (builder != null)
+		if (builder != null) {
+			log.info("using builder for file " + fileId + "etag:" + etag);
 			return builder.build();
+		}
 		byte[] fileData = fdao.fileDataById(fileId);
 		Response rsp = Response.ok().entity(fileData).tag(etag).lastModified(file.getLastModified()).build();
 		log.info("returning file:" + rsp);

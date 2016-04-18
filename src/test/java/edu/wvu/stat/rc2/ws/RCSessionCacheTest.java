@@ -22,6 +22,7 @@ import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.rworker.RWorker;
 import edu.wvu.stat.rc2.Rc2CommonMocks;
 import edu.wvu.stat.rc2.UnitTestDBConfig;
+import edu.wvu.stat.rc2.config.SessionConfigImpl;
 import edu.wvu.stat.rc2.persistence.RCUser;
 
 public class RCSessionCacheTest {
@@ -38,7 +39,7 @@ public class RCSessionCacheTest {
 
 	RCSessionSocket createSocketForWorkspace(int wspaceId) {
 		RCSessionCache.RWorkerFactory wfactory = new RCSessionCache.RWorkerFactory(new MockSocketFactory());
-		RCSessionCache cache = new RCSessionCache(dbfactory, _mapper, wfactory);
+		RCSessionCache cache = new RCSessionCache(dbfactory, _mapper, new SessionConfigImpl(), wfactory);
 		
 		ServletUpgradeRequest req = mock(ServletUpgradeRequest.class);
 		HttpServletRequest hreq = mock(HttpServletRequest.class);

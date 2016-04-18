@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.wvu.stat.rc2.config.SessionConfig;
 import edu.wvu.stat.rc2.persistence.RCFile;
 import edu.wvu.stat.rc2.persistence.RCSessionImage;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
@@ -286,7 +287,11 @@ public class RWorker implements Runnable {
 	}
 	
 	private void sendShowOutputResponse(ShowOutputRResponse rsp, RCFile file) {
-		getDelegate().broadcastToAllClients(new ShowOutputResponse(file, rsp.getQueryId()));
+		byte[] fileData = null;
+		if (file.getFileSize() <= getDelegate().getSessionConfig().getShowOutputFileSizeLImitInBytes()) {
+			fileData = getDelegate().getDAO().getFileDao().fileDataById(file.getId());
+		}
+		getDelegate().broadcastToAllClients(new ShowOutputResponse(rsp.getQueryId(), file, fileData));
 	}
 	
 	@Override
@@ -334,6 +339,7 @@ public class RWorker implements Runnable {
 		public int getSessionRecordId();
 		public ObjectMapper getObjectMapper();
 		public Rc2DAO getDAO();
+		public SessionConfig getSessionConfig();
 
 		public void broadcastToAllClients(BaseResponse response);
 		public void broadcastToSingleClient(BaseResponse response, int socketId);

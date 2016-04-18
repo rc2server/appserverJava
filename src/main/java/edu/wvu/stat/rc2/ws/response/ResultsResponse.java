@@ -15,7 +15,7 @@ public class ResultsResponse extends BaseResponse {
 		_string = string;
 		_file = file;
 	}
-	
+
 	@JsonProperty
 	public String getString() { return _string; }
 	@JsonProperty
