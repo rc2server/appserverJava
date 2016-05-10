@@ -62,7 +62,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	private ExecutorService _executor;
 	private final long _startTime;
 	private final int _sessionId;
-	private boolean _watchingVariables;
+	private List<RCSessionSocket> _variableWatchers;
 	
 	/**
 	 @param dbfactory A factory is passed so that if the connection is dropped for some reason, a new one can be opened.
@@ -86,6 +86,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		
 		_webSockets = new ArrayList<RCSessionSocket>();
 		_startTime = System.currentTimeMillis();
+		_variableWatchers = new ArrayList<RCSessionSocket>();
 		
 		//must generate before rworker thread is started
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
@@ -115,7 +116,6 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	
 	
 	void shutdown() {
-		log.info("session shutting down", new Exception());
 		_rworker.shutdown();
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
 		srecDao.closeSessionRecord(_sessionId);
@@ -176,7 +176,12 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	}
 
 	private void handleWatchVariablesRequest(WatchVariablesRequest request, RCSessionSocket socket) {
-		
+		if (request.getWatch()) {
+			_variableWatchers.add(socket);
+			_rworker.setWatchingVariables(true);
+		} else {
+			stopWatchingVariables(socket);
+		}
 	}
 
 	private void handleKeepAliveRequest(KeepAliveRequest request, RCSessionSocket socket) {
@@ -214,6 +219,12 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		broadcastToSingleClient(rsp, socket.getSocketId());
 	}
 	
+	private void stopWatchingVariables(RCSessionSocket socket) {
+		_variableWatchers.remove(socket);
+		if (_variableWatchers.size() < 1)
+			_rworker.setWatchingVariables(false);
+	}
+	
 	//RCSessionSocket.Delegate
 	@Override
 	public void websocketUseDatabaseHandle(HandleCallback<Void> callback) {
@@ -239,6 +250,8 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	public void websocketClosed(RCSessionSocket socket) {
 		log.info("websocket says to close");
 		_webSockets.remove(socket);
+		stopWatchingVariables(socket);
+		_rworker.saveEnvironment();
 	}
 
 	//RCSessionSocket.Delegate

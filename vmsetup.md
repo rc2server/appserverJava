@@ -46,8 +46,8 @@ sudo cp *.a /usr/lib
 	sudo ldconfig
 
 ### install R
-	 ./configure --enable-R-shlib --with-blas --with-x=yes --with-lapack --enable-prebuilt-html LDFLAGS=-Wl,-Bsymbolic-functions
-	 install packages: knitr
+	 ./configure --enable-R-shlib --with-blas --with-x=no --with-cairo=yes --with-lapack --enable-prebuilt-html LDFLAGS=-Wl,-Bsymbolic-functions
+	 install packages: rmarkdown
 	 install Rcpp (I do from source, likely doesn't matter)
 	 install RInside from source. Edit inst/include/RInsideConfig.h and uncomment #define RINSIDE_CALLBACKS
 	 sudo ln -s /usr/local/lib/R/share/texmf/tex/latex/  /usr/share/texmf/tex/latex/R

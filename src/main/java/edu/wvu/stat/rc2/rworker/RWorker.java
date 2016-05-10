@@ -147,6 +147,14 @@ public class RWorker implements Runnable {
 		_outputQueue.add(serializeJson(cmd));
 	}
 
+	public void saveEnvironment() {
+		Map<String, Object> cmd = new HashMap<String, Object>();
+		cmd.put("msg", "saveEnv");
+		cmd.put("argument", "");
+		_outputQueue.add(serializeJson(cmd));
+		log.info("saving environment");
+	}
+	
 	public void fetchVariableValue(String varName) {
 		if (varName == null) {
 			// list all variables
@@ -389,7 +397,7 @@ public class RWorker implements Runnable {
 					String msg = _outputQueue.poll(2,
 							TimeUnit.SECONDS);
 					if (msg != null) {
-						log.debug("sending message:" + msg);
+						log.info("sending message:" + msg);
 						writeOutMessage(msg);
 					}
 				}

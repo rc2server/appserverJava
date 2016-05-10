@@ -99,6 +99,16 @@ In both cases, you should `cd /usr/local; ln -s pgsql9.4 pgsql` to make a proper
 
 To setup the test database, run `createdb -O rc2 rc2test`, `psql -U rc2 rc2test < rc2.sql` and `psql -U rc2 rc2test < testData.sql`
 
+For rcompute2 unit tests, you should run as user postgres `alter user rc2 createdb`. Then create a template database as rc2:
+
+	dropdb -U rc2 rc2template
+	createdb -U rc2 -O rc2 rc2test
+	psql -U rc2 < rc2.sql
+	psql -U rc2 < testData.sql
+	psql -U rc2 -X -c 'create database rc2template template rc2test connection limit 0'
+
+Then to reset the test database, run `drop database rc2test; create database rc2test template rc2template`
+
 
 ## TODO
 
