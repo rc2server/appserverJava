@@ -296,7 +296,7 @@ public class RWorker implements Runnable {
 	
 	private void sendShowOutputResponse(ShowOutputRResponse rsp, RCFile file) {
 		byte[] fileData = null;
-		if (file.getFileSize() <= getDelegate().getSessionConfig().getShowOutputFileSizeLImitInBytes()) {
+		if (file.getFileSize() <= getDelegate().getSessionConfig().getShowOutputFileSizeLimitInBytes()) {
 			fileData = getDelegate().getDAO().getFileDao().fileDataById(file.getId());
 		}
 		getDelegate().broadcastToAllClients(new ShowOutputResponse(rsp.getQueryId(), file, fileData));
@@ -434,6 +434,7 @@ public class RWorker implements Runnable {
 			return createSocket(_host, _port);
 		}
 		public Socket createSocket(String host, int port) throws UnknownHostException, IOException {
+			log.info("connecting to compute:" + host + ":" + port);
 			return new Socket(host, port);
 		}
 	}

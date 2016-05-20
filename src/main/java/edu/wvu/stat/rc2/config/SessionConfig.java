@@ -9,7 +9,7 @@ public interface SessionConfig {
 	int getShowOutputFileSizeLimitInKB();
 	
 	@JsonIgnore
-	default int getShowOutputFileSizeLImitInBytes() {
+	default int getShowOutputFileSizeLimitInBytes() {
 		return getShowOutputFileSizeLimitInKB() * 1024;
 	}
 }
