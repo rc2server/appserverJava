@@ -94,7 +94,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 
 		_rworker = rworker;
 		if (null == _rworker)
-			_rworker = new RWorker(new RWorker.SocketFactory(), this);
+			_rworker = new RWorker(new RWorker.SocketFactory(getSessionConfig().getRComputeHost()), this);
 		else
 			_rworker.setDelegate(this);
 		Thread rwt = new Thread(_rworker);

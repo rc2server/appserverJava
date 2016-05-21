@@ -36,7 +36,7 @@ public class RCSessionCache implements Managed {
 		_mapper = mapper;
 		_config = config;
 		if (null == wfactory)
-			wfactory = new RWorkerFactory(new RWorker.SocketFactory());
+			wfactory = new RWorkerFactory(new RWorker.SocketFactory(config.getRComputeHost()));
 		_workerFactory = wfactory;
 	}
 	

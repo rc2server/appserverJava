@@ -51,7 +51,7 @@ public class RWorker implements Runnable {
 		//create a default socket factory if one was not passed to us
 		if (null == socketFactory) {
 			try { 
-				socketFactory = new SocketFactory(); 
+				socketFactory = new SocketFactory(delegate.getSessionConfig().getRComputeHost()); 
 			} catch (Exception e) { 
 				log.error("failed to create default socket factory", e);
 			}

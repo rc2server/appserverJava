@@ -8,6 +8,10 @@ public interface SessionConfig {
 	@JsonProperty
 	int getShowOutputFileSizeLimitInKB();
 	
+	/** The hostname for the compute server to connect to */
+	@JsonProperty
+	String getRComputeHost();
+	
 	@JsonIgnore
 	default int getShowOutputFileSizeLimitInBytes() {
 		return getShowOutputFileSizeLimitInKB() * 1024;
