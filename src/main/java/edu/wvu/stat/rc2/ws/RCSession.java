@@ -7,10 +7,12 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,11 +30,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.rworker.RWorker;
 import edu.wvu.stat.rc2.rworker.response.BaseRResponse;
+import edu.wvu.stat.rc2.ws.SessionError.SessionErrorException;
 import edu.wvu.stat.rc2.ws.request.*;
 import edu.wvu.stat.rc2.ws.response.BaseResponse;
 import edu.wvu.stat.rc2.ws.response.ErrorResponse;
 import edu.wvu.stat.rc2.ws.response.FileChangedResponse;
 import edu.wvu.stat.rc2.ws.response.FileChangedResponse.ChangeType;
+import edu.wvu.stat.rc2.ws.response.FileOperationResponse;
 import edu.wvu.stat.rc2.ws.response.SaveResponse;
 import edu.wvu.stat.rc2.config.SessionConfig;
 import edu.wvu.stat.rc2.persistence.RCFile;
@@ -62,7 +66,10 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	private ExecutorService _executor;
 	private final long _startTime;
 	private final int _sessionId;
+	/** who has requested being kept up-to-date on variable changes */
 	private List<RCSessionSocket> _variableWatchers;
+	/** store db notification strings we triggered and should ignore. */ 
+	private Set<String> _notificationsToIgnore;
 	
 	/**
 	 @param dbfactory A factory is passed so that if the connection is dropped for some reason, a new one can be opened.
@@ -87,6 +94,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		_webSockets = new ArrayList<RCSessionSocket>();
 		_startTime = System.currentTimeMillis();
 		_variableWatchers = new ArrayList<RCSessionSocket>();
+		_notificationsToIgnore = new HashSet<String>();
 		
 		//must generate before rworker thread is started
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
@@ -109,11 +117,8 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 
 	public int getSessionRecordId() { return _sessionId; }
 	public ObjectMapper getObjectMapper() { return _mapper; }
-	public int getClientCount() {
-		return _webSockets.size();
-	}
+	public int getClientCount() { return _webSockets.size(); }
 	public boolean isIdle() { return true; }
-	
 	
 	void shutdown() {
 		_rworker.shutdown();
@@ -125,31 +130,26 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	public void handleNotification(String channelName, String message) {
 		if (!channelName.equals("rcfile") || message.length() < 2)
 			return;
-		log.info("got db file notification:" + message);
-		//force refresh from the database. ideally we should be more selective, but the performance likely doesn't matter
-		_wspace.setFiles(_dao.getFileDao().filesForWorkspaceId(_wspace.getId()));
-		String[] parts = message.split("/");
-		int fid = Integer.parseInt(parts[0].substring(1));
-		Optional<RCFile> file = _wspace.getFileWithId(fid);
-		if (!file.isPresent()) {
-			log.warn("got file notification '" + message + "' for unknown file in workspace " + _wspace.getId());
+		if (_notificationsToIgnore.contains(message)) {
+			log.info("skipping notification " + message);
+			_notificationsToIgnore.remove(message);
 			return;
 		}
-		ChangeType ctype = null;
-		switch(message.charAt(0)) {
-			case 'd':
-				ctype = ChangeType.Delete;
-				break;
-			case 'i':
-				ctype = ChangeType.Insert;
-				break;
-			case 'u':
-				ctype = ChangeType.Update;
-				break;
-			default:
-				log.error("file note with invalid operation: " + message);
-				return;
+		log.info("got db file notification:" + message);
+		String[] parts = message.split("/");
+		int fid = Integer.parseInt(parts[0].substring(1));
+		int wspaceid = Integer.parseInt(parts[1]);
+		if (wspaceid != _wspace.getId())
+			return;
+		log.info("db notification is for us, file " + fid);
+		//force refresh from the database. ideally we should be more selective, but the performance likely doesn't matter
+		_wspace.setFiles(_dao.getFileDao().filesForWorkspaceId(_wspace.getId()));
+		Optional<RCFile> file = _wspace.getFileWithId(fid);
+		if (!file.isPresent()) {
+			log.warn(String.format("got file notification '%s' for unknown file %d in workspace %d", message, fid, wspaceid));
+			return;
 		}
+		ChangeType ctype = ChangeType.fromString(message);
 		FileChangedResponse  rsp = new FileChangedResponse(file.get(), ctype);
 		broadcastToAllClients(rsp);
 		_executor.submit(() -> {
@@ -157,7 +157,39 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 			_rworker.fileUpdated(file.get());
 		});
 	}
-		
+	
+	private void handleFileRequest(FileRequest request, RCSessionSocket socket) {
+		//TODO: implement file requests
+		RCFile file = _dao.getFileDao().findById(request.getFileId());
+		SessionError error = null;
+		FileOperationResponse rsp = null;
+		if (null == file) {
+			error = new SessionError(SessionError.ErrorCode.NoSuchFile);
+		} else if (request.getFileVersion() != file.getVersion()){
+			error = new SessionError(SessionError.ErrorCode.VersionMismatch);
+		} else {
+			try {
+				switch (request.getOperation()) {
+					case REMOVE:
+						rsp = removeFile(file, request);
+						break;
+					case RENAME:
+						rsp = renameFile(file, request);
+						break;
+					case DUPLICATE:
+						rsp = duplicateFile(file, request);
+						break;
+				}
+			} catch (SessionErrorException se) {
+				error = se.getError();
+			}
+		}
+		if (null == rsp) {
+			rsp = new FileOperationResponse(request.getTransId(), request.getOperation(), error != null, file, error);
+		}
+		broadcastToAllClients(rsp);
+	}
+	
 	private void handleExecuteRequest(ExecuteRequest request, RCSessionSocket socket) {
 		//TODO: implement sourcing via request.getType()
 		if (request.getFileId() > 0) {
@@ -225,6 +257,28 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 			_rworker.setWatchingVariables(false);
 	}
 	
+	private FileOperationResponse removeFile(RCFile file, FileRequest request) throws SessionErrorException {
+		log.info("removeFile: " + file.getId());
+		String note = String.format("d%d/%d/%d", file.getId(), file.getWspaceId(), file.getVersion());
+		_notificationsToIgnore.add(note);
+		if (_dao.getFileDao().deleteFile(file.getId()) != 1) {
+			throw new SessionErrorException(new SessionError(SessionError.ErrorCode.DatabaseUpdateFailed));
+		}
+		//files is immutable, so need to refetch
+		_wspace.setFiles(_dao.getFileDao().filesForWorkspaceId(_wspace.getId()));
+		return new FileOperationResponse(request.getTransId(), request.getOperation(), true, file, null);
+	}
+
+	private FileOperationResponse renameFile(RCFile file, FileRequest request) throws SessionErrorException {
+		log.info("duplicateFile: " + file.getId());
+		throw new SessionErrorException(new SessionError(SessionError.ErrorCode.NotImplemented));
+	}
+
+	private FileOperationResponse duplicateFile(RCFile file, FileRequest request) throws SessionErrorException {
+		log.info("duplicateFile: " + file.getId());
+		throw new SessionErrorException(new SessionError(SessionError.ErrorCode.NotImplemented));
+	}
+
 	//RCSessionSocket.Delegate
 	@Override
 	public void websocketUseDatabaseHandle(HandleCallback<Void> callback) {

@@ -16,7 +16,8 @@ public class ClientMessageResolver extends TypeIdResolverBase {
 		WATCHVARS_MSG ("watchVariables"),
 		GETVAR_MSG ("getVariable"),
 		HELP_MSG ("help"),
-		SAVE_MSG ("save");
+		SAVE_MSG ("save"),
+		FILE_MSG ("fileop");
 		
 		public final String jsonValue;
 		private Messages(String s) { jsonValue = s; }
@@ -77,6 +78,9 @@ public class ClientMessageResolver extends TypeIdResolverBase {
 				break;
 			case SAVE_MSG:
 				typeClass = "SaveRequest";
+				break;
+			case FILE_MSG:
+				typeClass = "FileRequest"; 
 				break;
 			default:
 				throw new IllegalStateException("cannot handle client request of type '" + type + "'");

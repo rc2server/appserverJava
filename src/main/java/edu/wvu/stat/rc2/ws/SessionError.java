@@ -15,7 +15,8 @@ public class SessionError implements RCError {
 	public enum ErrorCode {
 		NoSuchFile(1001, "invalid file specified"),
 		VersionMismatch(1002, "file version mismatch"),
-		DatabaseUpdateFailed(1003, "failed to update database")
+		DatabaseUpdateFailed(1003, "failed to update database"),
+		NotImplemented(1004, "feature not implemented")
 		;
 		private int _codeNumber;
 		private String _msg;
@@ -57,5 +58,16 @@ public class SessionError implements RCError {
 	@Override
 	@JsonProperty
 	public String getMessage() { return _message; }
+	
+	public static class SessionErrorException extends Exception {
+		private static final long serialVersionUID = 1L;
+		private final SessionError _error;
 
+		SessionErrorException(SessionError error) {
+			super(error.getMessage());
+			_error = error;
+		}
+		
+		public SessionError getError() { return _error; }
+	}
 }

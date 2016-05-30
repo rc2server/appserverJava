@@ -9,7 +9,20 @@ import edu.wvu.stat.rc2.persistence.RCFile;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FileChangedResponse extends BaseResponse {
 	public enum ChangeType {
-		Insert, Update, Delete
+		Insert, Update, Delete;
+		
+		public static ChangeType fromString(String str) {
+			switch(str.charAt(0)) {
+				case 'd':
+					return ChangeType.Delete;
+				case 'i':
+					return ChangeType.Insert;
+				case 'u':
+					return ChangeType.Update;
+				default:
+					return null;
+			}
+		}
 	}
 	
 	private final RCFile _file;
