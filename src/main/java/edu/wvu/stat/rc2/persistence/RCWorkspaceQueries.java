@@ -22,6 +22,10 @@ public abstract class RCWorkspaceQueries implements GetHandle {
 	@Mapper(RCWorkspaceMapper.class)
 	public abstract RCWorkspace findByName(@Bind("name") String name);
 
+	@SqlQuery("select * from RCWorkspace where projectid = :projectid order by name")
+	@Mapper(RCWorkspaceMapper.class)
+	public abstract List<RCWorkspace> forProject(@Bind("projectid") int projectid);
+
 	@SqlQuery("select * from RCWorkspace where userid = :userid order by name")
 	@Mapper(RCWorkspaceMapper.class)
 	public abstract List<RCWorkspace> ownedByUser(@Bind("userid") int userid);
@@ -37,6 +41,15 @@ public abstract class RCWorkspaceQueries implements GetHandle {
 	
 	public List<RCWorkspace> ownedByUserIncludingFiles(@Bind("userid") int userid) {
 		List<RCWorkspace> wspaces = ownedByUser(userid);
+		RCFileQueries fileDao = getHandle().attach(RCFileQueries.class);
+		for (RCWorkspace wspace : wspaces) {
+			wspace.setFiles(fileDao.filesForWorkspaceId(wspace.getId()));
+		}
+		return wspaces;
+	}
+
+	public List<RCWorkspace> forProjectIncludingFiles(@Bind("projectid") int projectid) {
+		List<RCWorkspace> wspaces = forProject(projectid);
 		RCFileQueries fileDao = getHandle().attach(RCFileQueries.class);
 		for (RCWorkspace wspace : wspaces) {
 			wspace.setFiles(fileDao.filesForWorkspaceId(wspace.getId()));

@@ -24,11 +24,10 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import edu.wvu.stat.rc2.persistence.RCFileQueries;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCLoginTokenQueries;
+import edu.wvu.stat.rc2.persistence.RCProject;
 import edu.wvu.stat.rc2.persistence.RCUser;
-import edu.wvu.stat.rc2.persistence.RCWorkspace;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 @Path("/login")
@@ -88,21 +87,17 @@ public class LoginResource extends BaseResource {
 	static class LoginOutput {
 		final RCUser _user;
 		final String _token;
-		final List<RCWorkspace> _wspaces;
+		final List<RCProject> _projects;
 		
 		LoginOutput(RCUser user, Rc2DAO dao, String token) {
 			_user = user;
 			_token = token;
-			_wspaces = dao.getWorkspaceDao().ownedByUser(user.getId());
-			RCFileQueries fileDao = dao.getDBI().onDemand(RCFileQueries.class);
-			for (RCWorkspace wspace : _wspaces) {
-				wspace.setFiles(fileDao.filesForWorkspaceId(wspace.getId()));
-			}
+			_projects = dao.getProjectDao().ownedByUserIncludingWorkspacesAndFiles(user.getId());
 		}
 		
 		public RCUser getUser() { return _user; }
 		public String getToken() { return _token; }
-		public List<RCWorkspace> getWorkspaces() { return _wspaces; }
+		public List<RCProject> getProjects() { return _projects; }
 		
 	}
 }

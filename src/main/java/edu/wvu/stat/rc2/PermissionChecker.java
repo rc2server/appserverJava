@@ -15,6 +15,7 @@ public class PermissionChecker {
 
 	public boolean canAccessWorkspace(RCWorkspace wspace) {
 		assert wspace != null;
-		return wspace.getId() > 0 && wspace.getUserId() == _user.getId();
+		assert wspace.getProject() != null;
+		return wspace.getId() > 0 && wspace.getProject().getUserId() == _user.getId();
 	}
 }

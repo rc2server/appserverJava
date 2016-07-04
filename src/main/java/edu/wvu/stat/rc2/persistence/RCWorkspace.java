@@ -27,19 +27,19 @@ public abstract class RCWorkspace {
 	public static RCWorkspace create(
 			@JsonProperty("id") int id, 
 			@JsonProperty("version") int version, 
-			@JsonProperty("userId") int userId, 
+			@JsonProperty("projectId") int projectId,
 			@JsonProperty("name") String name) 
 	{
-		return new AutoValue_RCWorkspace(id, version, userId, name);
+		return new AutoValue_RCWorkspace(id, version, projectId, name);
 	}
 	
 	public abstract @JsonProperty int getId();
 	public abstract @JsonProperty int getVersion();
-	public abstract @JsonProperty int getUserId();
+	public abstract @JsonProperty int getProjectId();
 	public abstract @JsonProperty String getName();
 
 	static RCWorkspace createFromResultSet(ResultSet rs) throws SQLException {
-		return new AutoValue_RCWorkspace(rs.getInt("id"), rs.getInt("version"), rs.getInt("userId"), rs.getString("name"));
+		return new AutoValue_RCWorkspace(rs.getInt("id"), rs.getInt("version"), rs.getInt("projectId"), rs.getString("name"));
 	}
 	
 	private List<RCFile> _files;
@@ -47,6 +47,10 @@ public abstract class RCWorkspace {
 	public void setFiles(List<RCFile> files) {
 		_files = ImmutableList.copyOf(files);
 	}
+	
+	private RCProject _project;
+	public RCProject getProject() { return _project; }
+	public void setProject(RCProject p) { _project = p; } 
 	
 	public Optional<RCFile> getFileWithId(int fileId) {
 		return _files.stream().filter(f -> f.getId() == fileId).findFirst();

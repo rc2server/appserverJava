@@ -14,6 +14,7 @@ public class Rc2DAO {
 	private final String _dbUser;
 	private final String _dbDatabase;
 	private volatile RCUser.Queries _userDao;
+	private volatile RCProjectQueries _projDao;
 	private volatile RCWorkspaceQueries _wsDao;
 	private volatile RCSessionImage.Queries _imgDao;
 	private volatile RCFileQueries _fileDao;
@@ -33,8 +34,14 @@ public class Rc2DAO {
 		return getUserDao().findById(userId);
 	}
 	
+	public RCProject findProjectById(int projid) {
+		return getProjectDao().findById(projid);
+	}
+	
 	public RCWorkspace findWorkspaceById(int wsid) {
-		return getWorkspaceDao().findById(wsid);
+		RCWorkspace wspace = getWorkspaceDao().findById(wsid);
+		wspace.setProject(findProjectById(wspace.getProjectId()));
+		return wspace;
 	}
 	
 	public RCSessionImage findImageById(int imageId) {
@@ -58,6 +65,19 @@ public class Rc2DAO {
 		return result;
 	}
 	
+	//uses double check idiom for fast performance (25x over synchronized)
+	public RCProjectQueries getProjectDao() {
+		RCProjectQueries result = _projDao;
+		if (null == result) {
+			synchronized(this) {
+				result = _projDao;
+				if (result == null)
+					_projDao = result = _dbi.onDemand(RCProjectQueries.class);
+			}
+		}
+		return result;
+	}
+
 	//uses double check idiom for fast performance (25x over synchronized)
 	public RCWorkspaceQueries getWorkspaceDao() {
 		RCWorkspaceQueries result = _wsDao;
