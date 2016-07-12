@@ -9,6 +9,7 @@ import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
@@ -49,7 +50,7 @@ public abstract class RCWorkspace {
 	}
 	
 	private RCProject _project;
-	public RCProject getProject() { return _project; }
+	@JsonIgnore public RCProject getProject() { return _project; }
 	public void setProject(RCProject p) { _project = p; } 
 	
 	public Optional<RCFile> getFileWithId(int fileId) {

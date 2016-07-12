@@ -275,8 +275,10 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleVariableUpdateResponse(VariableUpdateRResponse msg) {
-		VariableResponse rsp = new VariableResponse(msg.getVariables(), msg.getUserIdentifier(), msg.isDelta(), false);
-		getDelegate().broadcastToAllClients(rsp);
+		if (_watchingVariables) {
+			VariableResponse rsp = new VariableResponse(msg.getVariables(), msg.getUserIdentifier(), msg.isDelta(), false);
+			getDelegate().broadcastToAllClients(rsp);
+		}
 	}
 
 	@SuppressWarnings("unused") //dynamically called
