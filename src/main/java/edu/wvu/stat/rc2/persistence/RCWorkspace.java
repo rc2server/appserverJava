@@ -29,18 +29,21 @@ public abstract class RCWorkspace {
 			@JsonProperty("id") int id, 
 			@JsonProperty("version") int version, 
 			@JsonProperty("projectId") int projectId,
+			@JsonProperty("uniqueId") String uniqueId,
 			@JsonProperty("name") String name) 
 	{
-		return new AutoValue_RCWorkspace(id, version, projectId, name);
+		return new AutoValue_RCWorkspace(id, version, projectId, uniqueId, name);
 	}
 	
 	public abstract @JsonProperty int getId();
 	public abstract @JsonProperty int getVersion();
 	public abstract @JsonProperty int getProjectId();
+	public abstract @JsonProperty String getUniqueId();
 	public abstract @JsonProperty String getName();
 
 	static RCWorkspace createFromResultSet(ResultSet rs) throws SQLException {
-		return new AutoValue_RCWorkspace(rs.getInt("id"), rs.getInt("version"), rs.getInt("projectId"), rs.getString("name"));
+		return new AutoValue_RCWorkspace(rs.getInt("id"), rs.getInt("version"), rs.getInt("projectId"), 
+				rs.getString("uniqueId"), rs.getString("name"));
 	}
 	
 	private List<RCFile> _files;
