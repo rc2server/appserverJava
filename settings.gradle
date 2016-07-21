@@ -1,1 +1,3 @@
 rootProject.name = 'rc2drop'
+include 'libraries:pgjdbc-ng'
+

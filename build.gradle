@@ -2,6 +2,8 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
 
+import org.gradle.plugins.ide.eclipse.model.ProjectDependency
+
 group = 'edu.wvu.stat'
 version = '1.0-SNAPSHOT'
 
@@ -40,9 +42,8 @@ tasks.withType(Test) {
 }
 
 repositories {
-    mavenLocal()
-     maven { url "https://jitpack.io" }
-     maven { url "http://repo.maven.apache.org/maven2" }
+     mavenCentral()
+     maven { url "http://repo1.maven.org/maven2" }
 }
 
 sourceSets {
@@ -70,7 +71,7 @@ configurations {
 
 dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.7.1'
-    compile group: 'com.github.jeremyh', name: 'jBcrypt', version:'jbcrypt-0.4'
+    compile group: 'de.svenkubiak', name: 'jBCrypt', version:'0.4.1'
     compile group: 'org.eclipse.jetty.websocket', name: 'websocket-servlet', version:'9.2.13.v20150730'
     compile group: 'org.eclipse.jetty.websocket', name: 'websocket-server', version:'9.2.13.v20150730'
     compile group: 'io.dropwizard', name: 'dropwizard-core', version:'0.9.0-rc4'
@@ -78,7 +79,7 @@ dependencies {
     compile group: 'io.dropwizard', name: 'dropwizard-forms', version:'0.9.0-rc4'
     compile group: 'io.dropwizard', name: 'dropwizard-testing', version:'0.9.0-rc4'
     compile group: 'io.dropwizard', name: 'dropwizard-auth', version:'0.9.0-rc4'
-    compile group: 'com.impossibl.pgjdbc-ng', name: 'pgjdbc-ng', version:'0.7-SNAPSHOT'
+    compile project(':libraries:pgjdbc-ng')
     compile group: 'com.sun.mail', name: 'javax.mail', version:'1.5.4'
     compile group: 'org.slf4j', name: 'jul-to-slf4j', version:'1.7.0'
     compile group: 'org.msgpack', name: 'jackson-dataformat-msgpack', version:'0.8.3'
@@ -92,4 +93,12 @@ dependencies {
        This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
        Please review and delete this closure when resolved. */
     }
+}
+
+eclipse.classpath.file {
+  withXml {
+    def node = it.asNode()
+    node.appendNode('classpathentry', [kind: 'lib', path: 'libraries/pgjdbc-ng/build/libs/pgjdbc-ng-0.7.0-SNAPSHOT.jar'])
+    node.remove( node.find { it.@path == '/pgjdbc-ng' })
+  }
 }

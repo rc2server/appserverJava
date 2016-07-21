@@ -7,7 +7,7 @@ charset = utf-8
 ident_style = tab
 ident__size = 4
 
-[*.{yml,xml,py}]
+[*.{yml,xml,py,gradle}]
 indent_style = space
 indent_size = 2
 

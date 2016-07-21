@@ -15,6 +15,7 @@ import com.impossibl.postgres.jdbc.PGDataSource;
 
 import edu.wvu.stat.rc2.config.DatabaseConfig;
 import edu.wvu.stat.rc2.jdbi.BigIntegerArgumentFactory;
+//import io.dropwizard.jdbi.logging.LogbackLog;
 
 public class Rc2DataSourceFactory {
 	final static Logger log = LoggerFactory.getLogger("rc2.Rc2DataSourceFactory");
@@ -48,6 +49,7 @@ public class Rc2DataSourceFactory {
 	public DBI createDBI() {
 		DBI dbi = new DBI(_ds);
 		dbi.registerArgumentFactory(new BigIntegerArgumentFactory());
+//		dbi.setSQLLog(new LogbackLog());
 		return dbi;
 	}
 	

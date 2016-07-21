@@ -37,7 +37,7 @@ public class Rc2CommonMocks {
 	}
 
 	public static RCWorkspace mockWorkspace() {
-		RCWorkspace wspace = RCWorkspace.create(1, 1, 1, "test ws");
+		RCWorkspace wspace = RCWorkspace.create(1, 1,  1, "xdfsdfsdfds", "test ws");
 		ArrayList<RCFile> files = new ArrayList<RCFile>();
 		Date now = new Date();
 		files.add(RCFile.create(1, 1, "test.R", 1, now, now, 1024));

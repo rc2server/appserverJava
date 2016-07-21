@@ -2,7 +2,7 @@ package edu.wvu.stat.rc2.server;
 
 import java.io.Console;
 
-import org.mindrot.BCrypt;
+import org.mindrot.jbcrypt.BCrypt;
 
 import io.dropwizard.cli.Command;
 import io.dropwizard.setup.Bootstrap;

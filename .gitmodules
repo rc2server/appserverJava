@@ -1,0 +1,4 @@
+[submodule "libraries/pgjdbc-ng"]
+	path = libraries/pgjdbc-ng
+	url = https://github.com/mlilback/pgjdbc-ng.git
+	branch = develop
