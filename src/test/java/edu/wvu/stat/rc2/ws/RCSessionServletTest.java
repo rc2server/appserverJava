@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.wvu.stat.rc2.Rc2CommonMocks;
 import edu.wvu.stat.rc2.UnitTestDBConfig;
+import edu.wvu.stat.rc2.config.SessionConfig;
 import edu.wvu.stat.rc2.config.SessionConfigImpl;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
@@ -68,7 +69,7 @@ public class RCSessionServletTest {
 	public void testCreateServlet() {
 		when(_httpRequest.getAttribute(UserSessionKey)).thenReturn(_user);
 		when(_upgradeRequest.getRequestPath()).thenReturn("1");
-		RCSessionServlet servlet = new RCSessionServlet(_sessionCache);
+		RCSessionServlet servlet = new RCSessionServlet(_sessionCache, new TestSessionConfig());
 		servlet.configure(_wsFactory);
 		assertThat(_creator, notNullValue());
 		//create the websocket
@@ -78,7 +79,7 @@ public class RCSessionServletTest {
 	}
 
 	private void testSocketCreationError() {
-		RCSessionServlet servlet = new RCSessionServlet(_sessionCache);
+		RCSessionServlet servlet = new RCSessionServlet(_sessionCache, new TestSessionConfig());
 		servlet.configure(_wsFactory);
 		assertThat(_creator, notNullValue());
 		ServletUpgradeResponse response = mock(ServletUpgradeResponse.class);
@@ -107,5 +108,24 @@ public class RCSessionServletTest {
 		when(_httpRequest.getAttribute(UserSessionKey)).thenReturn(null);
 		when(_upgradeRequest.getRequestPath()).thenReturn("11111111");
 		testSocketCreationError();
+	}
+	
+	class TestSessionConfig implements SessionConfig {
+
+		@Override
+		public int getShowOutputFileSizeLimitInKB() {
+			return 20;
+		}
+
+		@Override
+		public String getRComputeHost() {
+			return "compute";
+		}
+
+		@Override
+		public long getIdleTimeout() {
+			return -1;
+		}
+		
 	}
 }

@@ -9,6 +9,7 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.wvu.stat.rc2.config.SessionConfig;
 import edu.wvu.stat.rc2.persistence.RCUser;
 
 import static edu.wvu.stat.rc2.Rc2AppConfiguration.*;
@@ -20,14 +21,17 @@ public class RCSessionServlet extends WebSocketServlet {
 	static final Logger log = LoggerFactory.getLogger("rc2.RCSessionServlet");
 
 	private final RCSessionCache _sessionCache;
+	private final SessionConfig _sessionConfig;
 	
-	public RCSessionServlet(RCSessionCache sessionCache) {
+	public RCSessionServlet(RCSessionCache sessionCache, SessionConfig config) {
 		_sessionCache = sessionCache;
+		_sessionConfig = config;
 	}
 	
 	@Override
 	public void configure(WebSocketServletFactory factory) {
 		factory.setCreator(new RC2WebSocketCreator());
+		factory.getPolicy().setIdleTimeout(_sessionConfig.getIdleTimeout() * 1000); //seconds to milliseconds
 	}
 
 	class RC2WebSocketCreator implements WebSocketCreator {

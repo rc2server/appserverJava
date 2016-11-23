@@ -5,6 +5,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class SessionConfigImpl implements SessionConfig {
 	private int _showOutputFileSizeLimit = 20;
 	private String _computeHost = "compute";
+	private long _idleTimeout;
+	
+	@Override
+	@JsonProperty
+	public long getIdleTimeout() {
+		return _idleTimeout;
+	}
+	
+	public void setIdleTimeout(long val) {
+		_idleTimeout = val;
+		if (_idleTimeout < -1) { _idleTimeout = -1; }
+	}
 	
 	@Override
 	@JsonProperty

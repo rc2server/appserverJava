@@ -73,7 +73,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 		env.jersey().register(WorkspaceResource.class);
 		env.jersey().register(LoginResource.class);
 		
-		ServletHolder h = new ServletHolder(new RCSessionServlet(_sessionCache));
+		ServletHolder h = new ServletHolder(new RCSessionServlet(_sessionCache, config.getSessionConfig()));
 		env.getApplicationContext().addServlet(h, "/ws/*");
 
 		env.jersey().register(new DAOInjectFilter());

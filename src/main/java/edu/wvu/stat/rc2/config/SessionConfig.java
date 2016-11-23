@@ -12,6 +12,10 @@ public interface SessionConfig {
 	@JsonProperty
 	String getRComputeHost();
 	
+	/** the idle timeout value for a websocket */
+	@JsonProperty
+	long getIdleTimeout();
+	
 	@JsonIgnore
 	default int getShowOutputFileSizeLimitInBytes() {
 		return getShowOutputFileSizeLimitInKB() * 1024;
