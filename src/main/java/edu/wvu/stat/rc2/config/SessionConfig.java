@@ -15,6 +15,11 @@ public interface SessionConfig {
 	/** the idle timeout value for a websocket */
 	@JsonProperty
 	long getIdleTimeout();
+
+	@JsonIgnore
+	default long getIdleTimeoutMilliseconds() {
+		return getIdleTimeout() * 1000;
+	}
 	
 	@JsonIgnore
 	default int getShowOutputFileSizeLimitInBytes() {

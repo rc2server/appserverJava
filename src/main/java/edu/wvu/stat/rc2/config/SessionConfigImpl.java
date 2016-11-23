@@ -15,7 +15,7 @@ public class SessionConfigImpl implements SessionConfig {
 	
 	public void setIdleTimeout(long val) {
 		_idleTimeout = val;
-		if (_idleTimeout < -1) { _idleTimeout = -1; }
+		if (_idleTimeout < 0) { _idleTimeout = 60 * 60 * 24 * 1000; } //default to 1 day timeout
 	}
 	
 	@Override

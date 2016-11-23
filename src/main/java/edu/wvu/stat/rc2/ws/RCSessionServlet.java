@@ -31,7 +31,7 @@ public class RCSessionServlet extends WebSocketServlet {
 	@Override
 	public void configure(WebSocketServletFactory factory) {
 		factory.setCreator(new RC2WebSocketCreator());
-		factory.getPolicy().setIdleTimeout(_sessionConfig.getIdleTimeout() * 1000); //seconds to milliseconds
+		factory.getPolicy().setIdleTimeout(_sessionConfig.getIdleTimeoutMilliseconds());
 	}
 
 	class RC2WebSocketCreator implements WebSocketCreator {
