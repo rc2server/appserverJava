@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import edu.wvu.stat.rc2.AppError;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCLoginTokenQueries;
 import edu.wvu.stat.rc2.persistence.RCProject;
@@ -56,7 +57,16 @@ public class LoginResource extends BaseResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response loginUser(@Valid @NotNull LoginInput input) {
-		RCUser user = getDAO().getUserDao().findByLogin(input.getLogin());
+		RCUser user = null;
+		try {
+			user = getDAO().getUserDao().findByLogin(input.getLogin());
+		} catch (org.skife.jdbi.v2.exceptions.UnableToObtainConnectionException ce) {
+			log.error("failed to open db connection", ce);
+			throwError(500, AppError.DatabaseConnection);
+		} catch (Exception e) {
+			log.error("exception during login", e);
+			throwRestError(RCRestError.LoginError);
+		}
 		if (user == null || !user.isEnabled() || !BCrypt.checkpw(input.getPassword(), user.getHashedPassword()))
 			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 		

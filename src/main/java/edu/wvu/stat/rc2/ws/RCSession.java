@@ -146,15 +146,27 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		_wspace.setFiles(_dao.getFileDao().filesForWorkspaceId(_wspace.getId()));
 		Optional<RCFile> file = _wspace.getFileWithId(fid);
 		if (!file.isPresent()) {
-			log.warn(String.format("got file notification '%s' for unknown file %d in workspace %d", message, fid, wspaceid));
-			return;
+			//try fetching that particular file
+			RCFile fetchedFile = _dao.getFileDao().findById(fid);
+			if (fetchedFile == null) {
+				log.warn(String.format("got file notification '%s' for unknown file %d in workspace %d", message, fid, wspaceid));
+				return;
+			}
+			log.info("manually inserted file in workspace");
+			List<RCFile> files = _wspace.getFiles();
+			files.add(fetchedFile);
+			_wspace.setFiles(files);
+			file = Optional.of(fetchedFile);
+		} else {
+			log.info("file isn't present");
 		}
 		ChangeType ctype = ChangeType.fromString(message);
 		FileChangedResponse  rsp = new FileChangedResponse(file.get(), ctype);
 		broadcastToAllClients(rsp);
+		final RCFile fileConstant = file.get();
 		_executor.submit(() -> {
 			log.info("telling worker file was updated");
-			_rworker.fileUpdated(file.get());
+			_rworker.fileUpdated(fileConstant);
 		});
 	}
 	

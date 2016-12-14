@@ -10,7 +10,8 @@ import edu.wvu.stat.rc2.RCError;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum RCRestError implements RCError  {
-	DuplicateName(100, 422, "DuplicateName");
+	DuplicateName(100, 422, "DuplicateName"),
+	LoginError(101, 500, "InternalError");
 	
 	private static final ResourceBundle rBundle = ResourceBundle.getBundle("RCRestError");
 	private int _errorCode, _httpCode;

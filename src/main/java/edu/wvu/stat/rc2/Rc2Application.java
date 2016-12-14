@@ -100,6 +100,7 @@ public class Rc2Application extends Application<Rc2AppConfiguration> {
 	class DAOInjectFilter implements ContainerRequestFilter {
 		public void filter(ContainerRequestContext ctx) {
 			ctx.setProperty("rc2.dao", getDAO());
+			ctx.setProperty("rc2.config", _config);
 		}
 	}
 }

@@ -49,7 +49,7 @@ public class WorkspaceResource extends BaseResource {
 		try {
 			RCWorkspace wspace = getDAO().findWorkspaceById(wspaceId);
 			checkWorkspacePermissions(wspace);
-			FileResource rsrc = new FileResource(getDAO(), getUser(), wspace);
+			FileResource rsrc = new FileResource(getDAO(), getUser(), wspace, getConfig().getFileDownloadDelay());
 			return rsrc;
 		} catch (Exception e) {
 			e.printStackTrace();

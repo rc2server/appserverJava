@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import edu.wvu.stat.rc2.PermissionChecker;
 import edu.wvu.stat.rc2.RCCustomError;
 import edu.wvu.stat.rc2.RCError;
+import edu.wvu.stat.rc2.Rc2AppConfiguration;
 import edu.wvu.stat.rc2.persistence.RCLoginToken;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
@@ -28,12 +29,13 @@ public abstract class BaseResource {
 	private Rc2DAO _dao;
 	private RCUser _user;
 	private PermissionChecker _permChecker;
+	private Rc2AppConfiguration _config;
 
 	public BaseResource() {}
 
 	/** constructor for unit tests to bypass injection */
 	BaseResource(Rc2DAO dao, RCUser user) {
-	  _dao = dao;
+		_dao = dao;
 		_user = user;
 	}
 
@@ -41,6 +43,12 @@ public abstract class BaseResource {
 	  if (null == _dao)
 	    _dao = (Rc2DAO)_servletRequest.getAttribute("rc2.dao");
 	  return _dao;
+	}
+	
+	protected Rc2AppConfiguration getConfig() {
+		if (null == _config)
+			_config = (Rc2AppConfiguration)_servletRequest.getAttribute("rc2.config");
+		return _config;
 	}
 	
 	protected PermissionChecker getPermChecker() {
@@ -64,7 +72,6 @@ public abstract class BaseResource {
 							.entity(Arrays.asList(error))
 							.build();
 		throw new WebApplicationException(rsp);
-		
 	}
 
 	public void throwCustomRestError(RCRestError error, String details) throws WebApplicationException {
@@ -76,6 +83,13 @@ public abstract class BaseResource {
 		
 	}
 
+	public void throwError(int code, RCError error) throws WebApplicationException {
+		Response rsp = Response.status(code)
+							.entity(Arrays.asList(error))
+							.build();
+		throw new WebApplicationException(rsp);
+	}
+	
 	public List<RCError> formatErrorResponse(RCRestError error) {
 		return Arrays.asList(error);
 	}

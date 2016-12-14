@@ -37,11 +37,17 @@ public class FileResource {
 	final RCWorkspace _wspace;
 	final RCUser _user;
 	final DBI _dbi;
+	final long _downloadDelay;
 
 	public FileResource(Rc2DAO dao, RCUser user, RCWorkspace wspace) {
+		this(dao, user, wspace, 0);
+	}
+	
+	public FileResource(Rc2DAO dao, RCUser user, RCWorkspace wspace, long downloadDelay) {
 		_dbi = dao.getDBI();
 		_user = user;
 		_wspace = wspace;
+		_downloadDelay = downloadDelay;
 	}
 
 	@Path("{fid : \\d+}")
@@ -59,6 +65,13 @@ public class FileResource {
 			return builder.build();
 		}
 		byte[] fileData = fdao.fileDataById(fileId);
+		if (_downloadDelay > 0) {
+			log.info("delaying download by " + _downloadDelay);
+			try {
+				Thread.sleep(_downloadDelay);
+			} catch (InterruptedException ie) {
+			}
+		}
 		Response rsp = Response.ok().entity(fileData).tag(etag).lastModified(file.getLastModified()).build();
 		log.info("returning file:" + rsp);
 		return rsp;

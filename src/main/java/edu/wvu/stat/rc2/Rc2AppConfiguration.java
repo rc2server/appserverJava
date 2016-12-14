@@ -14,6 +14,7 @@ public class Rc2AppConfiguration extends Configuration {
 	
 	private boolean _prettyPrint;
 	private boolean _enableTracing;
+	private long _fileDelay;
 	private DatabaseConfig _dbConfig;
 	private SessionConfig _sessionConfig;
 	
@@ -22,6 +23,9 @@ public class Rc2AppConfiguration extends Configuration {
 	
 	public boolean getEnableTracing() { return _enableTracing; }
 	public void setEnableTracing(boolean t) { _enableTracing = t; }
+	
+	public long getFileDownloadDelay() { return _fileDelay; }
+	public void setFileDownloadDelay(long d) { _fileDelay = d; }
 	
 	@JsonDeserialize(as=DatabaseConfigImpl.class)
 	public DatabaseConfig getDatabaseConfig() { return _dbConfig; }
