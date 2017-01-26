@@ -169,6 +169,7 @@ public class RWorker implements Runnable {
 	}
 
 	public void fileUpdated(RCFile file) {
+		if (file == null) return; //a delete that we don't care about
 		ShowOutputRResponse rsp = _pendingShowOutputs.get(file.getId());
 		if (null == rsp)
 			log.info("fileUpdated called with unknown file id");

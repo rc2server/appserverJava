@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.eclipse.jetty.websocket.api.WebSocketPolicy;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse;
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
@@ -57,6 +58,10 @@ public class RCSessionServletTest {
 				return null;
 			}
 		}).when(_wsFactory).setCreator(anyObject());
+		//mock policy to allow setting idle timeout
+		WebSocketPolicy policy = mock(WebSocketPolicy.class);
+		when(_wsFactory.getPolicy()).thenReturn(policy);
+//		verify(policy).setIdleTimeout(anyLong());
 
 		//prep mocks to create websocket
 		_upgradeRequest = mock(ServletUpgradeRequest.class);

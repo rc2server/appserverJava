@@ -51,6 +51,23 @@ public abstract class RCFileQueries {
 	
 	@SqlUpdate("update rcfile set version = version + 1, lastmodified = now() where id = :id")
 	abstract int updateFileVersion(@Bind("id") int id);
+
+	@SqlUpdate("update rcfile set name = :name, version = version + 1, lastmodified = now() where id = :id")
+	abstract int updateName(@Bind("id") int id, @Bind("name") String name);
+
+	@SqlUpdate("insert into rcfiledata (id, bindata) select :destId, bindata from rcfiledata where id = :srcId")
+	abstract int copyFileData(@Bind("srcId") int srcId, @Bind("destId") int destId);
+	
+	@Transaction
+	public RCFile updateFileName(int fileId, String newName) {
+		try {
+			if (updateName(fileId, newName) == 1)
+				return findById(fileId);
+		} catch (Exception e) {
+			log.error("error updating file name", e);
+		}
+		return null;
+	}
 	
 	@Transaction
 	public RCFile updateFileContents(int fileId, InputStream contents) {
@@ -59,6 +76,19 @@ public abstract class RCFileQueries {
 			updateFileVersion(fileId);
 		} catch (Exception e) {
 			log.error("error updating file contents", e);
+			return null;
+		}
+		return findById(fileId);
+	}
+	
+	@Transaction
+	public RCFile duplicateFile(RCFile file, String newName) {
+		int fileId = 0;
+		try {
+			fileId = createFile(file.getWspaceId(), newName, file.getFileSize());
+			copyFileData(file.getId(), fileId);
+		} catch (Exception e) {
+			log.error("error duplicating file", e);
 			return null;
 		}
 		return findById(fileId);

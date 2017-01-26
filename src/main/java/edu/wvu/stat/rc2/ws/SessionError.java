@@ -13,6 +13,7 @@ public class SessionError implements RCError {
 	
 	//nothing should ever be all uppercase
 	public enum ErrorCode {
+		UnknownError(0, "unknown error"),
 		NoSuchFile(1001, "invalid file specified"),
 		VersionMismatch(1002, "file version mismatch"),
 		DatabaseUpdateFailed(1003, "failed to update database"),

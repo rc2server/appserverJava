@@ -1,13 +1,16 @@
 package edu.wvu.stat.rc2.ws.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FileRequest extends BaseRequest {
 	private final FileOperation _op;
 	private final int _fileId;
 	private final int _fileVersion;
+	private final String _newName;
 	private final String _transId;
 	
 	@JsonCreator
@@ -15,13 +18,15 @@ public class FileRequest extends BaseRequest {
 			@JsonProperty("operation") FileOperation operation, 
 			@JsonProperty("transId") String transId, 
 			@JsonProperty("fileVersion") int fileVersion, 
-			@JsonProperty("fileId") int fileId) 
+			@JsonProperty("fileId") int fileId,
+			@JsonProperty("newName") String newName) 
 	{
 		super("fileop");
 		_op = operation;
 		_fileId = fileId;
 		_transId = transId;
 		_fileVersion = fileVersion;
+		_newName = newName;
 	}
 
 	@JsonProperty
@@ -36,6 +41,9 @@ public class FileRequest extends BaseRequest {
 	@JsonProperty
 	public int getFileVersion() { return _fileVersion; }
 
+	@JsonProperty
+	public String getNewName() { return _newName; }
+	
 	@Override
 	public String toString() {
 		return String.format("operation %s, file: %d", _op, _fileId);

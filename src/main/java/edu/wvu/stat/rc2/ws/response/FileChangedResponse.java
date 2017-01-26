@@ -25,15 +25,23 @@ public class FileChangedResponse extends BaseResponse {
 		}
 	}
 	
+	private final int _fileId;
 	private final RCFile _file;
 	private final ChangeType _change;
 	
 	@JsonCreator
-	public FileChangedResponse(@JsonProperty("file") RCFile file, @JsonProperty("type") ChangeType type) {
+	public FileChangedResponse(@JsonProperty("fileId") int fileId,
+			@JsonProperty("file") RCFile file, 
+			@JsonProperty("type") ChangeType type) 
+	{
 		super("filechanged", 0);
+		_fileId = fileId;
 		_file = file;
 		_change = type;
 	}
+	
+	@JsonProperty
+	public int getFileId() { return _fileId; }
 	
 	@JsonProperty
 	public RCFile getFile() { return _file; }

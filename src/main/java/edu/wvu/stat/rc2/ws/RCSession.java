@@ -13,8 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 import org.skife.jdbi.v2.DBI;
@@ -51,13 +54,14 @@ import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 
 @SuppressWarnings("unused")
-public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delegate, Rc2DataSourceFactory.NotificationListener
+public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delegate, 
+	FileUpdateCenter.Delegate, Rc2DataSourceFactory.NotificationListener
 {
 	static final Logger log = LoggerFactory.getLogger("rc2.RCSession");
 
 	private final Rc2DataSourceFactory _dbfactory;
 	private RCWorkspace _wspace;
-	private final List<RCSessionSocket> _webSockets;
+	private final WebSocketCollection _webSockets;
 	private ObjectMapper _mapper;
 	private ObjectMapper _msgPackMapper;
 	private Rc2DAO _dao;
@@ -68,8 +72,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	private final int _sessionId;
 	/** who has requested being kept up-to-date on variable changes */
 	private List<RCSessionSocket> _variableWatchers;
-	/** store db notification strings we triggered and should ignore. */ 
-	private Set<String> _notificationsToIgnore;
+	private FileUpdateCenter _fileUpdater;
 	
 	/**
 	 @param dbfactory A factory is passed so that if the connection is dropped for some reason, a new one can be opened.
@@ -77,24 +80,37 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	 @param mapper An object mapper to use for json conversion. If null, a generic mapper will be created.
 	 @param rworker The rworker to use. If null, one will be created.
 	 */
-	RCSession(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, SessionConfig config, int wspaceId, RWorker rworker) 
+	RCSession(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, 
+			SessionConfig config, int wspaceId, RWorker rworker) 
+	{
+		this(dbfactory, mapper, config, wspaceId, rworker, Executors.newSingleThreadExecutor());
+	}
+
+	/**
+	 @param dbfactory A factory is passed so that if the connection is dropped for some reason, a new one can be opened.
+	 * @param mapper An object mapper to use for json conversion. If null, a generic mapper will be created.
+	 * @param rworker The rworker to use. If null, one will be created.
+	 * @param executor Used for background processing of work.
+	 * @param workspace The workspace this session represents.
+	 */
+	RCSession(Rc2DataSourceFactory dbfactory, ObjectMapper mapper, 
+			SessionConfig config, int wspaceId, RWorker rworker, ExecutorService executor) 
 	{
 		_dbfactory = dbfactory;
 		_mapper = mapper;
 		_config = config;
 		if (null == _mapper)
 			_mapper = new ObjectMapper();
-		_executor = Executors.newSingleThreadExecutor();
+		_executor = executor;
 		_msgPackMapper = new ObjectMapper(new MessagePackFactory());
 		_dao = _dbfactory.createDAO();
 		_wspace = _dao.findWorkspaceById(wspaceId);
 		if (null == _wspace)
 			throw new IllegalArgumentException("invalid workspaceId");
 		
-		_webSockets = new ArrayList<RCSessionSocket>();
+		_webSockets = new WebSocketCollection(_mapper, _msgPackMapper);
 		_startTime = System.currentTimeMillis();
 		_variableWatchers = new ArrayList<RCSessionSocket>();
-		_notificationsToIgnore = new HashSet<String>();
 		
 		//must generate before rworker thread is started
 		RCSessionRecord.Queries srecDao = _dao.getDBI().onDemand(RCSessionRecord.Queries.class);
@@ -110,10 +126,12 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		rwt.start();
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> _rworker.shutdown()));
 		_dbfactory.addNotificationListener("rcfile", this);
+		_fileUpdater = new FileUpdateCenter(this, _executor);
 	}
 
 	//RCSessionSocket.Delegate
 	public int getWorkspaceId() { return _wspace.getId(); }
+	public RCWorkspace getWorkspace() { return _wspace; }
 
 	public int getSessionRecordId() { return _sessionId; }
 	public ObjectMapper getObjectMapper() { return _mapper; }
@@ -130,76 +148,58 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	public void handleNotification(String channelName, String message) {
 		if (!channelName.equals("rcfile") || message.length() < 2)
 			return;
-		if (_notificationsToIgnore.contains(message)) {
-			log.info("skipping notification " + message);
-			_notificationsToIgnore.remove(message);
-			return;
+		_fileUpdater.databaseFileUpdated(message, _rworker);
+	}
+	
+	private BiFunction<RCFile, FileRequest, CompletableFuture<RCFile>> 
+		functionForOperation(FileRequest.FileOperation operation)
+	{
+		switch (operation) {
+			case REMOVE:
+				return this::removeFile;
+			case RENAME:
+				return this::renameFile;
+			case DUPLICATE:
+				return this::duplicateFile;
+			default:
+				log.error("impossible to have an unkown operation");
+				throw new RuntimeException("illegal state");
 		}
-		log.info("got db file notification:" + message);
-		String[] parts = message.split("/");
-		int fid = Integer.parseInt(parts[0].substring(1));
-		int wspaceid = Integer.parseInt(parts[1]);
-		if (wspaceid != _wspace.getId())
-			return;
-		log.info("db notification is for us, file " + fid);
-		//force refresh from the database. ideally we should be more selective, but the performance likely doesn't matter
-		_wspace.setFiles(_dao.getFileDao().filesForWorkspaceId(_wspace.getId()));
-		Optional<RCFile> file = _wspace.getFileWithId(fid);
-		if (!file.isPresent()) {
-			//try fetching that particular file
-			RCFile fetchedFile = _dao.getFileDao().findById(fid);
-			if (fetchedFile == null) {
-				log.warn(String.format("got file notification '%s' for unknown file %d in workspace %d", message, fid, wspaceid));
-				return;
-			}
-			log.info("manually inserted file in workspace");
-			List<RCFile> files = _wspace.getFiles();
-			files.add(fetchedFile);
-			_wspace.setFiles(files);
-			file = Optional.of(fetchedFile);
-		} else {
-			log.info("file isn't present");
-		}
-		ChangeType ctype = ChangeType.fromString(message);
-		FileChangedResponse  rsp = new FileChangedResponse(file.get(), ctype);
-		broadcastToAllClients(rsp);
-		final RCFile fileConstant = file.get();
-		_executor.submit(() -> {
-			log.info("telling worker file was updated");
-			_rworker.fileUpdated(fileConstant);
-		});
 	}
 	
 	private void handleFileRequest(FileRequest request, RCSessionSocket socket) {
-		//TODO: implement file requests
-		RCFile file = _dao.getFileDao().findById(request.getFileId());
+		RCFile inFile = _dao.getFileDao().findById(request.getFileId());
 		SessionError error = null;
-		FileOperationResponse rsp = null;
-		if (null == file) {
+		if (null == inFile) {
 			error = new SessionError(SessionError.ErrorCode.NoSuchFile);
-		} else if (request.getFileVersion() != file.getVersion()){
+		} else if (request.getFileVersion() != inFile.getVersion()){
 			error = new SessionError(SessionError.ErrorCode.VersionMismatch);
 		} else {
-			try {
-				switch (request.getOperation()) {
-					case REMOVE:
-						rsp = removeFile(file, request);
-						break;
-					case RENAME:
-						rsp = renameFile(file, request);
-						break;
-					case DUPLICATE:
-						rsp = duplicateFile(file, request);
-						break;
-				}
-			} catch (SessionErrorException se) {
-				error = se.getError();
-			}
+			functionForOperation(request.getOperation())
+				.apply(inFile, request)
+				.thenAccept((returnedFile) -> { 
+					broadcastToAllClients(new FileOperationResponse(request.getTransId(), 
+							request.getOperation(), true, returnedFile, null));
+				})
+				.exceptionally((e) -> { 
+					if (e instanceof SessionErrorException) {
+						broadcastToAllClients(new FileOperationResponse(request.getTransId(), 
+								request.getOperation(), false, null, ((SessionErrorException) e).getError()));
+					} else {
+						log.error("unknown exception from file operation");
+						broadcastToAllClients(new FileOperationResponse(request.getTransId(), 
+								request.getOperation(), false, null, 
+								new SessionError(SessionError.ErrorCode.UnknownError)));
+					}
+					return null;
+				});
+			
 		}
-		if (null == rsp) {
-			rsp = new FileOperationResponse(request.getTransId(), request.getOperation(), error != null, file, error);
+		if (error != null) {
+			broadcastToAllClients(new FileOperationResponse(request.getTransId(), 
+					request.getOperation(), false, null, error));
+			return;
 		}
-		broadcastToAllClients(rsp);
 	}
 	
 	private void handleExecuteRequest(ExecuteRequest request, RCSessionSocket socket) {
@@ -250,7 +250,6 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 			error = new SessionError(SessionError.ErrorCode.VersionMismatch);
 		} else {
 			//do the save, which will trigger notification
-			log.info("saving file modifications");
 			ByteArrayInputStream stream = new ByteArrayInputStream(request.getContent().getBytes(Charset.forName("utf-8")));
 			file = fdao.updateFileContents(request.getFileId(), stream);
 			if (file == null) {
@@ -269,26 +268,56 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 			_rworker.setWatchingVariables(false);
 	}
 	
-	private FileOperationResponse removeFile(RCFile file, FileRequest request) throws SessionErrorException {
-		log.info("removeFile: " + file.getId());
-		String note = String.format("d%d/%d/%d", file.getId(), file.getWspaceId(), file.getVersion());
-		_notificationsToIgnore.add(note);
-		if (_dao.getFileDao().deleteFile(file.getId()) != 1) {
-			throw new SessionErrorException(new SessionError(SessionError.ErrorCode.DatabaseUpdateFailed));
-		}
-		//files is immutable, so need to refetch
+	private void refetchFiles() {
 		_wspace.setFiles(_dao.getFileDao().filesForWorkspaceId(_wspace.getId()));
-		return new FileOperationResponse(request.getTransId(), request.getOperation(), true, file, null);
+	}
+	
+	private CompletableFuture<RCFile> removeFile(RCFile file, FileRequest request) {
+		log.debug("removeFile: " + file.getId());
+		CompletableFuture<RCFile> future = new CompletableFuture<>();
+		_fileUpdater.addDeleteCallback(file.getId(), file.getVersion(), (aFile) -> {
+			log.info("removeFile callback triggered");
+			future.complete(null);
+		});
+		_executor.submit(() -> { 
+			if (_dao.getFileDao().deleteFile(file.getId()) != 1) {
+				future.completeExceptionally(new SessionErrorException(
+						new SessionError(SessionError.ErrorCode.DatabaseUpdateFailed)));
+			}
+		} );
+		return future;
 	}
 
-	private FileOperationResponse renameFile(RCFile file, FileRequest request) throws SessionErrorException {
-		log.info("duplicateFile: " + file.getId());
-		throw new SessionErrorException(new SessionError(SessionError.ErrorCode.NotImplemented));
+	CompletableFuture<RCFile> renameFile(RCFile file, FileRequest request) {
+		log.debug("renameFile: " + file.getId());
+		CompletableFuture<RCFile> future = new CompletableFuture<>();
+		_fileUpdater.addUpdateCallback(file.getId(), file.getVersion(), (aFile) -> {
+			future.complete(aFile);
+		});
+		_executor.submit(() -> { 
+			RCFile updatedFile = _dao.getFileDao().updateFileName(file.getId(), request.getNewName());
+			if (null == updatedFile) {
+				future.completeExceptionally(new SessionErrorException(
+						new SessionError(SessionError.ErrorCode.DatabaseUpdateFailed)));
+			}
+		} );
+		return future;
 	}
 
-	private FileOperationResponse duplicateFile(RCFile file, FileRequest request) throws SessionErrorException {
-		log.info("duplicateFile: " + file.getId());
-		throw new SessionErrorException(new SessionError(SessionError.ErrorCode.NotImplemented));
+	private CompletableFuture<RCFile> duplicateFile(RCFile file, FileRequest request) {
+		log.debug("duplicateFile: " + file.getId());
+		CompletableFuture<RCFile> future = new CompletableFuture<>();
+		_fileUpdater.addInsertCallback(file.getId(), file.getVersion(), (aFile) -> {
+			future.complete(aFile);
+		});
+		_executor.submit(() -> { 
+			RCFile newFile = _dao.getFileDao().duplicateFile(file, request.getNewName());
+			if (null == newFile) {
+				future.completeExceptionally(new SessionErrorException(
+						new SessionError(SessionError.ErrorCode.DatabaseUpdateFailed)));
+			}
+		} );
+		return future;
 	}
 
 	//RCSessionSocket.Delegate
@@ -339,6 +368,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	//RCSessionSocket.Delegate
 	@Override
 	public void processWebsocketBinaryMessage(RCSessionSocket socket, byte[] data, int offset, int length) {
+		log.info("got binary message");
 		byte[] buffer = Arrays.copyOfRange(data, offset, length + offset);
 		BaseRequest req=null;
 		String cmdStr = null;
@@ -366,39 +396,13 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	//RWorker.Delegate
 	@Override
 	public void broadcastToAllClients(BaseResponse response) {
-		try {
-			Object serializedResponse;
-			if (response.isBinaryMessage())
-				serializedResponse = _msgPackMapper.writeValueAsBytes(response);
-			else
-				serializedResponse = _mapper.writeValueAsString(response);
-			_webSockets.forEach(socket -> {
-				try {
-					socket.sendResponse(serializedResponse);
-				} catch (Exception e) {
-					log.info("error sending message", e);
-				}
-			});
-//			_sessionTracker.logMessageSent(this, msg);
-		} catch (JsonProcessingException e) {
-			log.warn("error broadcasting a all users", e);
-		}
+		_webSockets.broadcastToAllClients(response);
 	}
 
 	//RWorker.Delegate
 	@Override
 	public void broadcastToSingleClient(BaseResponse response, int socketId) {
-		try {
-			Object serializedResponse;
-			if (response.isBinaryMessage())
-				serializedResponse = _msgPackMapper.writeValueAsBytes(response);
-			else
-				serializedResponse = _mapper.writeValueAsString(response);
-			RCSessionSocket socket = _webSockets.stream().filter(p -> p.getSocketId() == socketId).findFirst().get();
-			socket.sendResponse(serializedResponse);
-		} catch (Exception e) {
-			log.warn("error sending single message", e);
-		}
+		_webSockets.broadcastToSingleClient(response, socketId);
 	}
 
 	//RWorker.Delegate
