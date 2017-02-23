@@ -8,16 +8,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Date;
 
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
 
 import edu.wvu.stat.rc2.persistence.RCFile;
 import edu.wvu.stat.rc2.persistence.RCFileQueries;
+import edu.wvu.stat.rc2.persistence.RCProjectQueries;
 import edu.wvu.stat.rc2.persistence.RCSessionRecord;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
+import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 import edu.wvu.stat.rc2.persistence.Rc2DataSourceFactory;
 import edu.wvu.stat.rc2.rworker.RWorker;
@@ -50,10 +54,12 @@ public class Rc2CommonMocks {
 		public Rc2DataSourceFactory factory;
 		public Rc2DAO dao;
 		public RCFileQueries fdao;
+		public Connection dbConnection;
 		RCMockDBObjects(Rc2DataSourceFactory fact, Rc2DAO dao, RCFileQueries queries) {
 			this.factory = fact;
 			this.dao = dao;
 			this.fdao = queries;
+			this.dbConnection = dao.getDBI().open().getConnection();
 		}
 	}
 	
@@ -71,11 +77,20 @@ public class Rc2CommonMocks {
 		when(srecDao.closeSessionRecord(1)).thenReturn(1);
 		DBI sessionDbi = mock(DBI.class);
 		when(sessionDbi.onDemand(RCSessionRecord.Queries.class)).thenReturn(srecDao);
+		Handle handle = mock(Handle.class);
+		when(handle.getConnection()).thenReturn(mock(Connection.class));
+		when(sessionDbi.open()).thenReturn(handle);
 		when(dao.getDBI()).thenReturn(sessionDbi);
 		RCFileQueries fdao = mock(RCFileQueries.class);
 		when(fdao.filesForWorkspaceId(wspace.getId())).thenReturn(wspace.getFiles());
 		when(fdao.findById(wspace.getFiles().get(0).getId())).thenReturn(wspace.getFiles().get(0));
 		when(dao.getFileDao()).thenReturn(fdao);
+		RCWorkspaceQueries wsDao = mock(RCWorkspaceQueries.class);
+		when(dao.getWorkspaceDao()).thenReturn(wsDao);
+		when(wsDao.findById(wspace.getId())).thenReturn(wspace);
+		when(wsDao.findByIdIncludingFiles(wspace.getId())).thenReturn(wspace);
+		RCProjectQueries pdao = mock(RCProjectQueries.class);
+		when(dao.getProjectDao()).thenReturn(pdao);
 		return new RCMockDBObjects(dbfactory, dao, fdao);
 	}
 

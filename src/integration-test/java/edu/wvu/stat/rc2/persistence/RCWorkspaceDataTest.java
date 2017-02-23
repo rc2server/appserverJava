@@ -28,7 +28,7 @@ public class RCWorkspaceDataTest {
 		
 		RCWorkspaceQueries dao = _dbi.onDemand(RCWorkspaceQueries.class);
 		RCWorkspaceData.Queries dataDao = _dbi.onDemand(RCWorkspaceData.Queries.class);
-		int wsId = dao.createWorkspace("testwsdata", 1);
+		int wsId = dao.createWorkspace("testwsdata", 101, 1);
 		try {
 			RCWorkspaceData wsData = dataDao.findById(wsId);
 			assertNull(wsData);

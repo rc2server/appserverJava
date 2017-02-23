@@ -1,8 +1,12 @@
 package edu.wvu.stat.rc2.resources;
 
+import java.io.File;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -15,6 +19,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -25,9 +31,14 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import edu.wvu.stat.rc2.jdbi.TransactionHandleWrapper;
+import edu.wvu.stat.rc2.persistence.RCFile;
+import edu.wvu.stat.rc2.persistence.RCFileQueries;
+import edu.wvu.stat.rc2.persistence.RCProject;
 import edu.wvu.stat.rc2.persistence.RCSessionImage;
 import edu.wvu.stat.rc2.persistence.RCUser;
 import edu.wvu.stat.rc2.persistence.RCWorkspace;
+import edu.wvu.stat.rc2.persistence.RCWorkspaceQueries;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 
 @Path("/workspaces")
@@ -97,20 +108,72 @@ public class WorkspaceResource extends BaseResource {
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-	public RCWorkspace createWorkspace(@Valid WorkspacePostInput input) {
-		RCWorkspace ws = getDAO().getWorkspaceDao().findByName(input.getName());
+	public Response createWorkspace(@Valid WorkspacePostInput input) {
+		RCWorkspace ws = getDAO().getWorkspaceDao().findByNameAndProject(input.getName(), input.getProjectId());
 		if (ws != null)
 			throwCustomRestError(RCRestError.DuplicateName, "workspace");
 		RCUser user = getUser();
-		int wsid = getDAO().getWorkspaceDao().createWorkspace(input.getName(), user.getId());
-		return getDAO().findWorkspaceById(wsid);
+		int wsid = getDAO().getWorkspaceDao().createWorkspace(input.getName(), input.getProjectId(), user.getId());
+		return Response.status(Response.Status.CREATED)
+				.entity(getDAO().getWorkspaceDao().findByIdIncludingFiles(wsid))
+				.build();
+	}
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
+	public Response createWorkspaceWithFiles(File inputFile, @Context HttpHeaders headers) 
+	{
+		String wspaceName = null;
+		int projectId = 0;
+		int wsid = -1;
+		ZipFile zfile = null;
+		try {
+			String pidstr = headers.getHeaderString("Rc2-ProjectId");
+			projectId = Integer.parseInt(pidstr);
+			wspaceName = headers.getHeaderString("Rc2-WorkspaceName");
+			zfile = new ZipFile(inputFile);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+		if (wspaceName == null || zfile == null)
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		RCProject project = getDAO().getProjectDao().findById(projectId);
+		if (project == null)
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		RCWorkspace ws = getDAO().getWorkspaceDao().findByNameAndProject(wspaceName, projectId);
+		if (ws != null)
+			throwCustomRestError(RCRestError.DuplicateName, "workspace");
+		RCUser user = getUser();
+		try (TransactionHandleWrapper trans = getDAO().createTransactionWrapper())
+		{
+			RCFileQueries fileDao = trans.addDao(RCFileQueries.class);
+			RCWorkspaceQueries wsDao = trans.addDao(RCWorkspaceQueries.class);
+			wsid = wsDao.createWorkspace(wspaceName, projectId, user.getId());
+			//read zip file, creating file objects
+			for (ZipEntry entry : Collections.list(zfile.entries())) {
+				try {
+					RCFile aFile = fileDao.createFileWithStream(wsid, entry.getName(), zfile.getInputStream(entry));
+					if (aFile == null) {
+						trans.rollback();
+						return Response.status(Response.Status.BAD_REQUEST).build();
+					}
+				} catch (Exception ie) {
+					log.error("failed to inserted file", ie);
+					trans.rollback();
+					return Response.status(Response.Status.BAD_REQUEST).build();
+				}
+			}
+		}
+		return Response.status(Response.Status.CREATED)
+				.entity(getDAO().getWorkspaceDao().findByIdIncludingFiles(wsid))
+				.build();
 	}
 	
 	@PUT
 	@Path("{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public RCWorkspace updateWorkspace(@Valid WorkspacePutInput input) {
-		RCWorkspace existing = getDAO().getWorkspaceDao().findByName(input.getName());
+		RCWorkspace existing = getDAO().getWorkspaceDao().findById(input.getId());
 		if (existing != null)
 			throwCustomRestError(RCRestError.DuplicateName, "workspace");
 		RCWorkspace wspace = getDAO().findWorkspaceById(input.getId());
@@ -140,13 +203,17 @@ public class WorkspaceResource extends BaseResource {
 	
 	public static class WorkspacePostInput {
 		private final String _name;
+		private final int _projectId;
 		
 		@JsonCreator
-		public WorkspacePostInput(@JsonProperty("name") String name) {
+		public WorkspacePostInput(@JsonProperty("name") String name, @JsonProperty("projectId") int projectId) 
+		{
 			_name = name;
+			_projectId = projectId;
 		}
 		
 		public @NotEmpty String getName() { return _name; }
+		public @Min(1) int getProjectId() { return _projectId; }
 	}
 	
 	public static class WorkspacePutInput {

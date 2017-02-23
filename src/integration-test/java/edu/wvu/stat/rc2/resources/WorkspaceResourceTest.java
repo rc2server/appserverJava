@@ -55,7 +55,7 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 	public void testProperErrorSerialization() throws JSONException {
 		RCCustomError expected = new RCCustomError(RCRestError.DuplicateName, "workspace");
 		WebTarget target = resources.client().target("/workspaces");
-		WorkspaceResource.WorkspacePostInput input = new WorkspaceResource.WorkspacePostInput("foofy");
+		WorkspaceResource.WorkspacePostInput input = new WorkspaceResource.WorkspacePostInput("foofy", 100);
 		Response rsp = target
 			.request()
 			.post(Entity.entity(input, MediaType.APPLICATION_JSON));
@@ -68,13 +68,14 @@ public class WorkspaceResourceTest extends BaseResourceTest {
 	@Test
 	public void testCreateEditDeleteWorkspace() {
 		WebTarget target = resources.client().target("/workspaces");
-		WorkspaceResource.WorkspacePostInput input = new WorkspaceResource.WorkspacePostInput("testws");
+		WorkspaceResource.WorkspacePostInput input = new WorkspaceResource.WorkspacePostInput("testws", 101);
 		RCWorkspace ws = target
 							.request()
 							.post(Entity.entity(input, MediaType.APPLICATION_JSON), RCWorkspace.class);
 		assertNotNull(ws);
 		assertThat(ws.getName(), is("testws"));
 		assertThat(ws.getId(), greaterThan(0));
+		assertThat(ws.getProjectId(), is(input.getProjectId()));
 		try {
 			//try an update
 			target = resources.client().target("/workspaces/1");

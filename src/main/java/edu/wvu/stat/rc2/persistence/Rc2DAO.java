@@ -6,6 +6,8 @@ import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.wvu.stat.rc2.jdbi.TransactionHandleWrapper;
+
 public class Rc2DAO {
 	static final Logger log = LoggerFactory.getLogger("rc2.Rc2DAO");
 
@@ -29,6 +31,10 @@ public class Rc2DAO {
 	public String getDBHost() { return _dbHost; }
 	public String getDBUser() { return _dbUser; }
 	public String getDBDatabase() { return _dbDatabase; }
+	
+	public TransactionHandleWrapper createTransactionWrapper() {
+		return new TransactionHandleWrapper(_dbi);
+	}
 	
 	public RCUser findUserById(int userId) {
 		return getUserDao().findById(userId);

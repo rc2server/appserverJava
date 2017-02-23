@@ -18,9 +18,9 @@ public abstract class RCWorkspaceQueries implements GetHandle {
 	@Mapper(RCWorkspaceMapper.class)
 	public abstract RCWorkspace findById(@Bind("id") int id);
 
-	@SqlQuery("select * from RCWorkspace where name ilike :name")
+	@SqlQuery("select * from RCWorkspace where projectId = :projectId and name ilike :name")
 	@Mapper(RCWorkspaceMapper.class)
-	public abstract RCWorkspace findByName(@Bind("name") String name);
+	public abstract RCWorkspace findByNameAndProject(@Bind("name") String name, @Bind("projectId") int projectId);
 
 	@SqlQuery("select * from RCWorkspace where projectid = :projectid order by name")
 	@Mapper(RCWorkspaceMapper.class)
@@ -30,14 +30,21 @@ public abstract class RCWorkspaceQueries implements GetHandle {
 	@Mapper(RCWorkspaceMapper.class)
 	public abstract List<RCWorkspace> ownedByUser(@Bind("userid") int userid);
 	
-	@SqlQuery("insert into rcworkspace (name, userid) values (:name, :userid) returning id")
-	public abstract int createWorkspace(@Bind("name") String name, @Bind("userid") int userid);
+	@SqlQuery("insert into rcworkspace (name, userid, projectid) values (:name, :userid, :projectid) returning id")
+	public abstract int createWorkspace(@Bind("name") String name, @Bind("projectid") int projectid, @Bind("userid") int userid);
 	
 	@SqlUpdate("update rcworkspace set name = :name where id = :id")
 	public abstract int updateWorkspace(@Bind("id") int id, @Bind("name") String name);
 	
 	@SqlUpdate("delete from rcworkspace where id = :id")
 	public abstract int deleteWorkspace(@Bind("id") int id);
+	
+	public RCWorkspace findByIdIncludingFiles(@Bind("id") int id) {
+		RCFileQueries fileDao = getHandle().attach(RCFileQueries.class);
+		RCWorkspace wspace = findById(id);
+		wspace.setFiles(fileDao.filesForWorkspaceId(id));
+		return wspace;
+	}
 	
 	public List<RCWorkspace> ownedByUserIncludingFiles(@Bind("userid") int userid) {
 		List<RCWorkspace> wspaces = ownedByUser(userid);
