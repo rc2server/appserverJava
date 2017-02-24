@@ -307,7 +307,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 	private CompletableFuture<RCFile> duplicateFile(RCFile file, FileRequest request) {
 		log.debug("duplicateFile: " + file.getId());
 		CompletableFuture<RCFile> future = new CompletableFuture<>();
-		_fileUpdater.addInsertCallback(file.getId(), file.getVersion(), (aFile) -> {
+		_fileUpdater.addInsertCallback(request.getNewName(), (aFile) -> {
 			future.complete(aFile);
 		});
 		_executor.submit(() -> { 

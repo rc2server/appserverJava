@@ -21,29 +21,31 @@ import edu.wvu.stat.rc2.ws.response.FileChangedResponse.ChangeType;
 
 public class FileUpdateCenter {
 	static final Logger log = LoggerFactory.getLogger("rc2.FileUpdateCenter");
-
+	static final int insertFakeId = -2;
+	
 	private final ExecutorService _executor;
-	/** key is (u|i|d)id, ie.e u101 or i200 */
 	private SetMultimap<Integer, Callback> _callbacks;
+	private SetMultimap<String, Callback> _insertCallbacks;
 	private final Delegate _delegate;
 
 	public FileUpdateCenter(Delegate delegate, ExecutorService executor) {
 		_delegate = delegate;
 		_callbacks = HashMultimap.create();
+		_insertCallbacks = HashMultimap.create();
 		_executor = executor;
 	}
 	
 	public void addUpdateCallback(int fileId, int previousVersion, Consumer<RCFile> action) {
-		_callbacks.put(fileId, new Callback(CallbackType.UPDATE, fileId, previousVersion, action));
+		_callbacks.put(fileId, new Callback(CallbackType.UPDATE, fileId, previousVersion, null, action));
 	}
 
-	public void addInsertCallback(int fileId, int previousVersion, Consumer<RCFile> action) {
-		_callbacks.put(fileId, new Callback(CallbackType.INSERT, fileId, previousVersion, action));
+	public void addInsertCallback(String fileName, Consumer<RCFile> action) {
+		_insertCallbacks.put(fileName, new Callback(CallbackType.INSERT, insertFakeId, 0, fileName, action));
 	}
 
 	public void addDeleteCallback(int fileId, int previousVersion, Consumer<RCFile> action) {
 		log.info("adding delete callback for " + fileId);
-		_callbacks.put(fileId, new Callback(CallbackType.DELETE, fileId, previousVersion, action));
+		_callbacks.put(fileId, new Callback(CallbackType.DELETE, fileId, previousVersion, null, action));
 	}
 
 	public void databaseFileUpdated(String message, RWorker rworker) {
@@ -52,14 +54,16 @@ public class FileUpdateCenter {
 	
 	private void performCallbacks(CallbackType type, int fileId, RCFile file) {
 		log.info("performing callbacks");
+		if (type == CallbackType.INSERT) {
+			for (Callback callback : _insertCallbacks.get(file.getName())) {
+				_executor.execute(() -> callback.action.accept(file));
+				_insertCallbacks.remove(file.getName(), callback);
+			}
+			return;
+		}
 		for (Callback callback : _callbacks.get(fileId)) {
 			if (callback.type == type)  {
-				int version = file == null ? -1 : file.getVersion();
-				log.info(String.format("comparing veresion %d to %d", version, callback.lastVersion));
-				//only call if file has changed
-				if ((file == null && type == CallbackType.DELETE) || 
-					(file.getVersion() > callback.lastVersion))
-				{
+				if (callback.matches(type, fileId, file)) {
 					_executor.execute(() -> callback.action.accept(file));
 				}
 				_callbacks.remove(fileId, callback);
@@ -123,13 +127,26 @@ public class FileUpdateCenter {
 		final int fileId;
 		final CallbackType type;
 		final int lastVersion;
+		final String insertedName;
 		final Consumer<RCFile> action;
 		
-		Callback(CallbackType type, int fileId, int lastVersion, Consumer<RCFile> action) {
+		Callback(CallbackType type, int fileId, int lastVersion, String insertedName, Consumer<RCFile> action) {
 			this.type = type;
 			this.fileId = fileId;
+			this.insertedName = insertedName;
 			this.action = action;
 			this.lastVersion = lastVersion;
+		}
+		
+		boolean matches(CallbackType type, int fileId, RCFile file) {
+			if (this.type != type) return false;
+			if (type == CallbackType.INSERT && file.getName().equals(insertedName))
+				return true;
+			int version = file == null ? -1 : file.getVersion();
+			log.info(String.format("comparing version %d to %d", version, lastVersion));
+			//only call if file has changed
+			return ((file == null && type == CallbackType.DELETE) || 
+				(file.getVersion() > lastVersion));
 		}
 	}
 	
