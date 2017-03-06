@@ -1,5 +1,6 @@
 package edu.wvu.stat.rc2.rworker.response;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -21,7 +22,14 @@ public class VariableUpdateRResponse extends BaseRResponse {
 			) 
 	{
 		super(msg);
-		_variables = vars;
+		//if vars.assigned is null, add an empty array
+		Map<String, Object> varMap = vars;
+		if (delta && vars.get("assigned") == null) {
+			HashMap<String,Object> hmap = new HashMap<String, Object>(varMap);
+			hmap.put("assigned", new HashMap<String,Object>());
+			varMap = hmap;
+		}
+		_variables = varMap;
 		_isDelta = delta;
 		_userIdentifier = userIdent;
 	}
