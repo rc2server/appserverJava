@@ -114,7 +114,7 @@ public class RWorker implements Runnable {
 		}
 	}
 
-	public void executeScript(String scriptCode) {
+	public void executeScript(String scriptCode, boolean noEcho) {
 		int queryId = _nextQueryId++;
 		Map<String, Object> cmd = new HashMap<String, Object>();
 		cmd.put("msg", "execScript");
@@ -122,7 +122,8 @@ public class RWorker implements Runnable {
 		cmd.put("queryId", queryId);
 		cmd.put("startTime", Long.toString(System.currentTimeMillis()));
 		_outputQueue.add(serializeJson(cmd));
-		getDelegate().broadcastToAllClients(new EchoQueryResponse(queryId, 0, scriptCode));
+		if (!noEcho)
+			getDelegate().broadcastToAllClients(new EchoQueryResponse(queryId, 0, scriptCode));
 	}
 
 	public void executeScriptFile(int fileId) {

@@ -207,7 +207,7 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 		if (request.getFileId() > 0) {
 			_rworker.executeScriptFile(request.getFileId());
 		} else {
-			_rworker.executeScript(request.getCode());
+			_rworker.executeScript(request.getCode(), request.getNoEcho());
 		}
 	}
 
