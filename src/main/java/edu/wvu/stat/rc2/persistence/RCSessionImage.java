@@ -27,10 +27,11 @@ public abstract class RCSessionImage {
 			@JsonProperty("batchId") int batchId, 
 			@JsonProperty("workspaceId") int wspaceId, 
 			@JsonProperty("name") String name, 
+			@JsonProperty("title") String title,
 			@JsonProperty("dateCreated") Date dateCreated, 
 			@JsonProperty("imageData") byte[] imgData) 
 	{
-		return new AutoValue_RCSessionImage(id, sessionId, batchId, wspaceId, name, dateCreated, imgData);
+		return new AutoValue_RCSessionImage(id, sessionId, batchId, wspaceId, name, title, dateCreated, imgData);
 	}
 
 	public abstract @JsonProperty int getId();
@@ -38,12 +39,13 @@ public abstract class RCSessionImage {
 	public abstract @JsonProperty int getBatchId();
 	public abstract @JsonProperty int getWorkspaceId();
 	public abstract @JsonProperty String getName();
+	public abstract @JsonProperty String getTitle();
 	public abstract @JsonProperty Date getDateCreated();
 	public abstract byte[] getImageData();
 	
 	static RCSessionImage createFromResultSet(ResultSet rs) throws SQLException {
 		return new AutoValue_RCSessionImage(rs.getInt("id"), rs.getInt("sessionid"), rs.getInt("batchid"),
-				rs.getInt("wspaceId"), rs.getString("name"), rs.getDate("datecreated"), rs.getBytes("imgdata"));
+				rs.getInt("wspaceId"), rs.getString("name"), rs.getString("title"), rs.getDate("datecreated"), rs.getBytes("imgdata"));
 	}
 
 	public static class RCSessionImageMapper implements ResultSetMapper<RCSessionImage> {
@@ -55,13 +57,13 @@ public abstract class RCSessionImage {
 
 	public interface Queries {
 		@SqlQuery("select img.id as \"id\", img.sessionId as \"sessionId\", rec.wspaceid as \"wspaceId\", batchId, " +
-				"name, dateCreated, imgdata from sessionimage img join sessionrecord rec on img.sessionid = rec.id " +
+				"name, title, dateCreated, imgdata from sessionimage img join sessionrecord rec on img.sessionid = rec.id " +
 				"where img.id = :id")
 		@Mapper(RCSessionImageMapper.class)
 		RCSessionImage findById(@Bind("id") int id);
 
 		@SqlQuery("select img.id as \"id\", img.sessionId as \"sessionId\", rec.wspaceid as \"wspaceId\", batchId, " +
-				"name, dateCreated, imgdata from sessionimage img join sessionrecord rec on img.sessionid = rec.id " +
+				"name, title, dateCreated, imgdata from sessionimage img join sessionrecord rec on img.sessionid = rec.id " +
 				"where img.batchid = :batchid and img.sessionid = :sessionId")
 		@Mapper(RCSessionImageMapper.class)
 		List<RCSessionImage> findByBatchId(@Bind("batchid") int batchid, @Bind("sessionId") int sessionId);

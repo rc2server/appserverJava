@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import javax.sql.DataSource;
 
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.util.IntegerMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +21,7 @@ import edu.wvu.stat.rc2.jdbi.BigIntegerArgumentFactory;
 
 public class Rc2DataSourceFactory {
 	final static Logger log = LoggerFactory.getLogger("rc2.Rc2DataSourceFactory");
+	final static int currentDBVersion = 2;
 
 	private final DataSource _ds;
 	private final ArrayList<ListenerProxy> _listeners;
@@ -44,6 +47,20 @@ public class Rc2DataSourceFactory {
 			pgds = (PGDataSource)_ds;
 		pgds.setApplicationName("rc2 REST server");
 		_listeners = new ArrayList<ListenerProxy>();
+		try {
+			DBI dbi = createDBI();
+			Handle h = dbi.open();
+			int version = h.createQuery("select valueint from metadata where key = 'sqlSchemaVersion'")
+					.map(IntegerMapper.FIRST)
+					.first();
+			if (version < currentDBVersion) {
+				h.execute("alter table sessionimage add column title varchar(255)");
+				h.execute("update metadata set valueint = ? where key = 'sqlSchemaVersion'", currentDBVersion);
+				log.info("schema updated to version 2");
+			}
+		} catch (Exception e) {
+			log.warn("error updating schema version", e);
+		}
 	}
 	
 	public DBI createDBI() {
