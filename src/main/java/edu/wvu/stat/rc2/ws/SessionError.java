@@ -17,7 +17,7 @@ public class SessionError implements RCError {
 		NoSuchFile(1001, "invalid file specified"),
 		VersionMismatch(1002, "file version mismatch"),
 		DatabaseUpdateFailed(1003, "failed to update database"),
-		NotImplemented(1004, "feature not implemented"),
+//		NotImplemented(1004, "feature not implemented"),
 		FailedToConnectToComputeEngine(1005, "failed to connect to compute engine"),
 		InvalidRequest(1006, "invalid request from client"),
 		ComputeError(1007, "error from compute engine")
