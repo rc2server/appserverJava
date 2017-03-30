@@ -28,6 +28,7 @@ import edu.wvu.stat.rc2.persistence.RCFile;
 import edu.wvu.stat.rc2.persistence.RCSessionImage;
 import edu.wvu.stat.rc2.persistence.Rc2DAO;
 import edu.wvu.stat.rc2.rworker.response.*;
+import edu.wvu.stat.rc2.ws.SessionError;
 import edu.wvu.stat.rc2.ws.response.*;
 
 public class RWorker implements Runnable {
@@ -221,7 +222,8 @@ public class RWorker implements Runnable {
 	
 	@SuppressWarnings("unused") //dynamically called
 	private void handleErrorResponse(ErrorRResponse msg) {
-		ErrorResponse  rsp = new ErrorResponse(msg.getDetails());
+		SessionError error = new SessionError(SessionError.ErrorCode.ComputeError, msg.getDetails());
+		ErrorResponse  rsp = new ErrorResponse(error);
 		getDelegate().broadcastToAllClients(rsp);
 	}
 
@@ -260,7 +262,7 @@ public class RWorker implements Runnable {
 
 	@SuppressWarnings("unused") //dynamically called
 	private void handleResultsResponse(ResultsRResponse msg) {
-		getDelegate().broadcastToAllClients(new ResultsResponse(msg.getString(), null, msg.getQueryId()));
+		getDelegate().broadcastToAllClients(new ResultsResponse(msg.getString(), msg.getQueryId()));
 	}
 
 	@SuppressWarnings("unused") //dynamically called

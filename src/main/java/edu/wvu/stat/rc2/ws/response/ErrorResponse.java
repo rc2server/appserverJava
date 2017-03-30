@@ -3,19 +3,21 @@ package edu.wvu.stat.rc2.ws.response;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import edu.wvu.stat.rc2.ws.SessionError;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ErrorResponse extends BaseResponse {
-	private final String _error;
+	private final SessionError _error;
 	
-	public ErrorResponse(String msg) {
-		this(msg, 0);
+	public ErrorResponse(SessionError err) {
+		this(err, 0);
 	}
 	
-	public ErrorResponse(String msg, int queryId) {
+	public ErrorResponse(SessionError err, int queryId) {
 		super("error", queryId);
-		_error = msg;
+		_error = err;
 	}
 	
 	@JsonProperty
-	public String getError() { return _error; }
+	public SessionError getError() { return _error; }
 }

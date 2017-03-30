@@ -14,7 +14,7 @@ public class ExecCompleteResponse extends BaseResponse {
 	private boolean _expectShowOutput;
 	
 	public ExecCompleteResponse(int batchId, List<RCSessionImage> images, int queryId, boolean expectShowOutput) {
-		super("results", queryId);
+		super("execComplete", queryId);
 		_batchId = batchId;
 		_images = images;
 		_expectShowOutput = expectShowOutput;
@@ -25,9 +25,6 @@ public class ExecCompleteResponse extends BaseResponse {
 	
 	@JsonProperty
 	public List<RCSessionImage> getImages() { return _images; }
-	
-	@JsonProperty
-	public boolean getComplete() { return true; }
 	
 	@JsonProperty
 	public boolean expectShowOutput() { return _expectShowOutput; }

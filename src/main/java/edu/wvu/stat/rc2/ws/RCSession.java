@@ -361,7 +361,8 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 			m.invoke(this, req, socket);
 		} catch (Exception e) {
 			log.error("error parsing client json", e);
-			broadcastToAllClients(new ErrorResponse("unknown error"));
+			SessionError error = new SessionError(SessionError.ErrorCode.InvalidRequest);
+			broadcastToAllClients(new ErrorResponse(error));
 		}
 	}
 
@@ -379,7 +380,8 @@ public final class RCSession implements RCSessionSocket.Delegate, RWorker.Delega
 			m.invoke(this, req, socket);
 		} catch (Exception e) {
 			log.error("error parsing client binary request", e);
-			broadcastToSingleClient(new ErrorResponse("failed to process binary message"), socket.getSocketId());
+			SessionError error = new SessionError(SessionError.ErrorCode.InvalidRequest, "failed to process binary message");
+			broadcastToSingleClient(new ErrorResponse(error), socket.getSocketId());
 		}
 	}
 
