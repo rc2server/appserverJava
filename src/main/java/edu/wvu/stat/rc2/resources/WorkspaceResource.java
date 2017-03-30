@@ -81,7 +81,7 @@ public class WorkspaceResource extends BaseResource {
 			log.warn("failed to find image " + imageId);
 			return Response.status(Response.Status.NOT_FOUND).build();
 		}
-		if (img.getWorkspaceId() != wspaceId) {
+		if (img.getWspaceId() != wspaceId) {
 			throw new WebApplicationException(Response.Status.FORBIDDEN);
 		}
 		Response rsp = Response.ok()

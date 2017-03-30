@@ -25,7 +25,7 @@ public abstract class RCSessionImage {
 			@JsonProperty("id") int id, 
 			@JsonProperty("sessionId") int sessionId, 
 			@JsonProperty("batchId") int batchId, 
-			@JsonProperty("workspaceId") int wspaceId, 
+			@JsonProperty("wspaceId") int wspaceId, 
 			@JsonProperty("name") String name, 
 			@JsonProperty("title") String title,
 			@JsonProperty("dateCreated") Date dateCreated, 
@@ -37,7 +37,7 @@ public abstract class RCSessionImage {
 	public abstract @JsonProperty int getId();
 	public abstract @JsonProperty int getSessionId();
 	public abstract @JsonProperty int getBatchId();
-	public abstract @JsonProperty int getWorkspaceId();
+	public abstract @JsonProperty int getWspaceId();
 	public abstract @JsonProperty String getName();
 	public abstract @JsonProperty String getTitle();
 	public abstract @JsonProperty Date getDateCreated();
