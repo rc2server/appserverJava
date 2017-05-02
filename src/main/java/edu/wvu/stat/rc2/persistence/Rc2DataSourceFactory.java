@@ -57,6 +57,8 @@ public class Rc2DataSourceFactory {
 				h.execute("alter table sessionimage add column title varchar(255)");
 				h.execute("update metadata set valueint = ? where key = 'sqlSchemaVersion'", currentDBVersion);
 				log.info("schema updated to version 2");
+			} else {
+				log.info("schema at version " + version + ", not upgrading");
 			}
 		} catch (Exception e) {
 			log.warn("error updating schema version", e);
