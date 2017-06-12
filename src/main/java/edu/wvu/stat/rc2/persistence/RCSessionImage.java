@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
@@ -39,7 +41,7 @@ public abstract class RCSessionImage {
 	public abstract @JsonProperty int getBatchId();
 	public abstract @JsonProperty int getWspaceId();
 	public abstract @JsonProperty String getName();
-	public abstract @JsonProperty String getTitle();
+	public abstract @JsonProperty @Nullable String getTitle();
 	public abstract @JsonProperty Date getDateCreated();
 	public abstract byte[] getImageData();
 	
